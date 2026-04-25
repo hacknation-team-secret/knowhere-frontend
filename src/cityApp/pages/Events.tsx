@@ -65,6 +65,25 @@ export default function Events() {
     );
   }
 
+  if (!events || events.length === 0) {
+    return (
+      <div className="space-y-6">
+        <header className="space-y-2 pt-1">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+              Explore
+            </p>
+            <span className="font-serif text-sm italic text-muted-foreground">Nearby Events</span>
+          </div>
+          <h1 className="font-serif text-4xl leading-tight">Hand-picked events for your journey.</h1>
+          <p className="text-sm text-muted-foreground">
+            No events are published yet.
+          </p>
+        </header>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <header className="space-y-2 pt-1">

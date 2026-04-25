@@ -87,7 +87,7 @@ export interface ApiEvent {
   description?: string | null;
   start_time: string;
   end_time: string;
-  location: number[]; // [lng, lat] or [lat, lng] — backend choice
+  location: number[]; // [longitude, latitude]
   id: number;
   owner_type: string;
   owner_id: number;
@@ -208,7 +208,7 @@ export const api = {
     }),
 
   // Events
-  listEvents: () => request<ApiEvent[]>("/items"), // /items returns list per OpenAPI
+  listEvents: () => request<ApiEvent[]>("/events"),
   listCities: () => 
     request<{ id: number; name: string; description: string | null }[]>("/cities").catch(() => []),
   attendEvent: (eventId: number) =>
