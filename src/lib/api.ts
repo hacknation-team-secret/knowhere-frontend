@@ -159,6 +159,41 @@ export interface ApiGroupBudget {
   updated_at: string;
 }
 
+export interface ApiWalletMember {
+  user: ApiPublicUser;
+  role: string;
+  contributed_cents: number;
+  spent_cents: number;
+  joined_at: string;
+}
+
+export interface ApiWalletTransaction {
+  id: number;
+  wallet_id: number;
+  type: "topup" | "spend" | "refund";
+  amount_cents: number;
+  initiated_by: number;
+  merchant?: string | null;
+  category?: string | null;
+  description?: string | null;
+  metadata_json?: string | null;
+  created_at: string;
+}
+
+export interface ApiSharedWallet {
+  id: number;
+  name: string;
+  currency: string;
+  total_balance_cents: number;
+  spending_limit_cents?: number | null;
+  alert_threshold_percent: number;
+  join_code: string;
+  created_by: number;
+  created_at: string;
+  members: ApiWalletMember[];
+  transactions: ApiWalletTransaction[];
+}
+
 export interface ApiResearchMessage {
   id: number;
   role: string;
@@ -307,6 +342,69 @@ export const api = {
     request<ApiGroupBudget>(`/groups/${groupId}/budget`, {
       method: "PUT",
       body: JSON.stringify(budget),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  listSharedWallets: () => request<ApiSharedWallet[]>("/wallets/shared"),
+
+  createSharedWallet: (wallet: {
+    name: string;
+    currency?: string;
+    spending_limit_cents?: number | null;
+    alert_threshold_percent?: number;
+  }) =>
+    request<ApiSharedWallet>("/wallets/shared", {
+      method: "POST",
+      body: JSON.stringify(wallet),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  joinSharedWallet: (join_code: string) =>
+    request<ApiSharedWallet>("/wallets/shared/join", {
+      method: "POST",
+      body: JSON.stringify({ join_code }),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  getSharedWallet: (walletId: number) =>
+    request<ApiSharedWallet>(`/wallets/${walletId}`),
+
+  updateSharedWallet: (
+    walletId: number,
+    updates: { spending_limit_cents?: number | null; alert_threshold_percent?: number | null },
+  ) =>
+    request<ApiSharedWallet>(`/wallets/${walletId}`, {
+      method: "PATCH",
+      body: JSON.stringify(updates),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  listWalletTransactions: (walletId: number) =>
+    request<ApiWalletTransaction[]>(`/wallets/${walletId}/transactions`),
+
+  fundSharedWallet: (
+    walletId: number,
+    payload: { amount_cents: number; payment_method: string; description?: string },
+  ) =>
+    request<ApiSharedWallet>(`/wallets/${walletId}/fund`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  spendSharedWallet: (
+    walletId: number,
+    payload: {
+      amount_cents: number;
+      merchant: string;
+      category?: string;
+      description?: string;
+      metadata_json?: string;
+    },
+  ) =>
+    request<ApiSharedWallet>(`/wallets/${walletId}/spend`, {
+      method: "POST",
+      body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" },
     }),
 

@@ -3,7 +3,7 @@ import { Loader2, Send, Sparkles, User, Bot, BookmarkPlus, Check, Users, UserPlu
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
 import { cn } from "@/lib/utils";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import type { ApiGroup, ApiGroupBudget, ApiGroupFavorite, ApiPublicUser, ApiResearchExtractResponse } from "@/lib/api";
 
@@ -873,6 +873,15 @@ export default function Research() {
           <p className="mt-2 text-ink-soft italic font-serif">
             Plan with your passport, your groups, votes, and shared budgets.
           </p>
+          <div className="mt-4">
+            <Link
+              to="/app/wallets/shared"
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
+            >
+              <DollarSign className="h-3.5 w-3.5" />
+              Open shared wallet
+            </Link>
+          </div>
         </div>
 
         {threadId && messages.length > 0 && (
