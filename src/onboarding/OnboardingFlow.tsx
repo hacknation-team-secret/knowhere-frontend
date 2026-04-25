@@ -172,7 +172,6 @@ export function OnboardingFlow() {
             handleAuthed(auth, state);
           }}
         />
-        />
       )}
     </Shell>
   );
