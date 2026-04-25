@@ -73,7 +73,6 @@ export function OnboardingFlow() {
     } catch (e) {
       nextState = { ...current, auth };
     }
-
     setState(nextState);
     enterApp("/app/research", nextState);
   };
@@ -128,8 +127,10 @@ export function OnboardingFlow() {
 
       {screen === "paste" && (
         <PasteScreen
-          onUseProfile={(profile) => {
-            setState((s) => ({ ...s, profile, usedQuickPicks: false }));
+          initialInstagram={state.socials?.instagram}
+          initialTiktok={state.socials?.tiktok}
+          onUseProfile={(profile, socials) => {
+            setState((s) => ({ ...s, profile, socials, usedQuickPicks: false }));
             setPath("profile");
             goTo("city");
           }}
@@ -164,6 +165,7 @@ export function OnboardingFlow() {
             };
             handleAuthed(auth, state);
           }}
+        />
         />
       )}
     </Shell>

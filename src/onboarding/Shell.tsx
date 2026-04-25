@@ -17,15 +17,18 @@ export function Shell({ children, step, total, onBack, wide = false }: ShellProp
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md">
         <div className="max-w-[1180px] mx-auto px-6 md:px-10 pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={onBack}
-              disabled={!onBack}
-              aria-label="Back"
-              className="inline-flex items-center gap-1.5 text-[13px] text-ink-soft hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              <ArrowLeft className="size-4" strokeWidth={1.6} />
-              <span>Back</span>
-            </button>
+            {onBack ? (
+              <button
+                onClick={onBack}
+                aria-label="Back"
+                className="inline-flex items-center gap-1.5 text-[13px] text-ink-soft hover:text-ink transition-colors"
+              >
+                <ArrowLeft className="size-4" strokeWidth={1.6} />
+                <span>Back</span>
+              </button>
+            ) : (
+              <div aria-hidden="true" className="w-[52px]" />
+            )}
             <span className="font-serif text-[18px] tracking-wide text-ink lowercase">
               know·here
             </span>
