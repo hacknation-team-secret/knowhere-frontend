@@ -136,6 +136,29 @@ export interface ApiGroup {
   memberships: ApiGroupMembership[];
 }
 
+export interface ApiGroupFavorite {
+  id: number;
+  group_id: number;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  estimated_cost?: number | null;
+  created_by: ApiPublicUser;
+  created_at: string;
+  vote_count: number;
+  voted_by_me: boolean;
+}
+
+export interface ApiGroupBudget {
+  group_id: number;
+  user: ApiPublicUser;
+  total_budget: number;
+  currency: string;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ApiResearchMessage {
   id: number;
   role: string;
@@ -225,6 +248,42 @@ export const api = {
 
   acceptGroupInvite: (groupId: number) =>
     request<ApiGroup>(`/groups/${groupId}/accept`, { method: "POST" }),
+
+  listGroupFavorites: (groupId: number) =>
+    request<ApiGroupFavorite[]>(`/groups/${groupId}/favorites`),
+
+  createGroupFavorite: (
+    groupId: number,
+    favorite: {
+      title: string;
+      description?: string;
+      category?: string;
+      estimated_cost?: number;
+    },
+  ) =>
+    request<ApiGroupFavorite>(`/groups/${groupId}/favorites`, {
+      method: "POST",
+      body: JSON.stringify(favorite),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  toggleGroupFavoriteVote: (groupId: number, favoriteId: number) =>
+    request<{ voted: boolean }>(`/groups/${groupId}/favorites/${favoriteId}/vote`, {
+      method: "POST",
+    }),
+
+  listGroupBudgets: (groupId: number) =>
+    request<ApiGroupBudget[]>(`/groups/${groupId}/budgets`),
+
+  upsertGroupBudget: (
+    groupId: number,
+    budget: { total_budget: number; currency?: string; notes?: string },
+  ) =>
+    request<ApiGroupBudget>(`/groups/${groupId}/budget`, {
+      method: "PUT",
+      body: JSON.stringify(budget),
+      headers: { "Content-Type": "application/json" },
+    }),
 
   chat: (message: string, threadId?: number, groupId?: number) =>
     request<{ answer: string; thread_id: number }>("/research", {

@@ -35,6 +35,37 @@ export const api = {
     return mainApi.acceptGroupInvite(groupId);
   },
 
+  async listGroupFavorites(groupId: number) {
+    return mainApi.listGroupFavorites(groupId);
+  },
+
+  async createGroupFavorite(
+    groupId: number,
+    favorite: {
+      title: string;
+      description?: string;
+      category?: string;
+      estimated_cost?: number;
+    },
+  ) {
+    return mainApi.createGroupFavorite(groupId, favorite);
+  },
+
+  async toggleGroupFavoriteVote(groupId: number, favoriteId: number) {
+    return mainApi.toggleGroupFavoriteVote(groupId, favoriteId);
+  },
+
+  async listGroupBudgets(groupId: number) {
+    return mainApi.listGroupBudgets(groupId);
+  },
+
+  async upsertGroupBudget(
+    groupId: number,
+    budget: { total_budget: number; currency?: string; notes?: string },
+  ) {
+    return mainApi.upsertGroupBudget(groupId, budget);
+  },
+
   async captureResearch(threadId: number, imageUrl?: string) {
     return mainApi.captureResearch(threadId, imageUrl);
   },
