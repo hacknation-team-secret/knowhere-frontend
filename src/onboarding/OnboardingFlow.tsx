@@ -50,7 +50,7 @@ export function OnboardingFlow() {
   const total = order.length;
 
   const goTo = (s: Screen) => setScreen(s);
-  const back = idx > 0 ? () => goTo(order[idx - 1]) : undefined;
+  const back = screen !== "welcome" && idx > 0 ? () => goTo(order[idx - 1]) : undefined;
 
   const wide = screen === "welcome";
 
