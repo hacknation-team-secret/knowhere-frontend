@@ -1,0 +1,4 @@
+project_id = "lunlcmnijnbacmxgqdzu"
+
+[functions.generate-passport]
+verify_jwt = false
