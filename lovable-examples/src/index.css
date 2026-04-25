@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Knowhere design system — warm, filmic, editorial.
+   All colors are HSL. Inspired by golden-hour travel photography,
+   cream paper, terracotta rock, sea teal, moss green, passport-stamp red. */
+
+@layer base {
+  :root {
+    /* Cream paper base */
+    --background: 38 38% 93%;
+    --foreground: 25 25% 11%;
+
+    --card: 38 45% 96%;
+    --card-foreground: 25 25% 11%;
+
+    --popover: 38 45% 96%;
+    --popover-foreground: 25 25% 11%;
+
+    /* Terracotta — primary accent */
+    --primary: 14 50% 47%;
+    --primary-foreground: 38 45% 96%;
+
+    /* Warm sand */
+    --secondary: 35 28% 86%;
+    --secondary-foreground: 25 25% 11%;
+
+    --muted: 35 22% 88%;
+    --muted-foreground: 25 12% 38%;
+
+    /* Sea teal */
+    --accent: 184 45% 31%;
+    --accent-foreground: 38 45% 96%;
+
+    /* Passport stamp red */
+    --stamp: 8 56% 41%;
+    --stamp-foreground: 38 45% 96%;
+
+    /* Moss green */
+    --moss: 75 26% 33%;
+    --moss-foreground: 38 45% 96%;
+
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 38 45% 96%;
+
+    --border: 30 18% 80%;
+    --input: 30 18% 80%;
+    --ring: 14 50% 47%;
+
+    --radius: 0.875rem;
+
+    /* Gradients & shadows */
+    --gradient-warm: linear-gradient(135deg, hsl(38 50% 95%), hsl(30 35% 88%));
+    --gradient-sunset: linear-gradient(135deg, hsl(14 60% 55%), hsl(28 65% 60%));
+    --shadow-soft: 0 1px 2px hsl(25 25% 11% / 0.04), 0 8px 24px -8px hsl(25 25% 11% / 0.10);
+    --shadow-lift: 0 4px 12px -2px hsl(25 25% 11% / 0.08), 0 16px 40px -12px hsl(25 25% 11% / 0.18);
+
+    --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+    --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .dark {
+    --background: 25 18% 9%;
+    --foreground: 38 38% 93%;
+    --card: 25 18% 12%;
+    --card-foreground: 38 38% 93%;
+    --popover: 25 18% 12%;
+    --popover-foreground: 38 38% 93%;
+    --primary: 14 55% 55%;
+    --primary-foreground: 25 18% 9%;
+    --secondary: 25 14% 18%;
+    --secondary-foreground: 38 38% 93%;
+    --muted: 25 12% 18%;
+    --muted-foreground: 35 18% 65%;
+    --accent: 184 40% 45%;
+    --accent-foreground: 25 18% 9%;
+    --stamp: 8 60% 55%;
+    --stamp-foreground: 25 18% 9%;
+    --moss: 75 26% 50%;
+    --moss-foreground: 25 18% 9%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 38 38% 93%;
+    --border: 25 14% 22%;
+    --input: 25 14% 22%;
+    --ring: 14 55% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  /* Subtle paper grain — performant SVG noise */
+  .paper-grain {
+    background-color: hsl(var(--background));
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.18  0 0 0 0 0.13  0 0 0 0 0.08  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .stamp-ink {
+    filter: url(#stamp-ink);
+  }
+
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-lift { box-shadow: var(--shadow-lift); }
+
+  @keyframes stamp-down {
+    0%   { opacity: 0; transform: scale(1.6) rotate(var(--rot, -3deg)); }
+    60%  { opacity: 1; transform: scale(0.94) rotate(var(--rot, -3deg)); }
+    80%  { transform: scale(1.02) rotate(var(--rot, -3deg)); }
+    100% { transform: scale(1) rotate(var(--rot, -3deg)); }
+  }
+  .animate-stamp { animation: stamp-down 0.55s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up { animation: fade-up 0.4s ease-out both; }
+}
