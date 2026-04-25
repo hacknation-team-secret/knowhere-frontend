@@ -1,7 +1,9 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Loader2, AtSign, KeyRound, User as UserIcon } from "lucide-react";
 import { Actions } from "./Actions";
-import { api, ApiError, type ApiUser } from "@/lib/api";
+import { getToken, type ApiUser } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   initialUsername?: string;
@@ -10,11 +12,13 @@ interface Props {
 }
 
 export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
+  const { signIn, signUp } = useAuth();
   const [username, setUsername] = useState(initialUsername ?? "");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
 
   const submit = async () => {
     if (!username.trim() || password.length < 4) {
@@ -24,23 +28,13 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
     setError(null);
     setBusy(true);
     try {
-      let user: ApiUser;
-      try {
-        user = await api.signup(username.trim(), password, email.trim() || undefined);
-      } catch (e) {
-        // Likely username taken — try login instead
-        if (e instanceof ApiError && (e.status === 400 || e.status === 409)) {
-          // fallthrough to login
-        } else if (!(e instanceof ApiError)) {
-          throw e;
-        }
-        await api.login(username.trim(), password);
-        user = await api.me();
-        onAuthed(user, "token_is_in_localstorage");
-        return;
-      }
-      await api.login(username.trim(), password);
-      onAuthed(user, "token_is_in_localstorage");
+      const user: ApiUser =
+        mode === "signin"
+          ? await signIn(username.trim(), password)
+          : await signUp(username.trim(), password, email.trim() || undefined);
+      const token = getToken();
+      if (!token) throw new Error("Missing auth token.");
+      onAuthed(user, token);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
       setError(msg);
@@ -52,14 +46,47 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
   return (
     <section>
       <p className="text-[11px] tracking-[0.22em] uppercase text-ink-soft mb-4">
-        Sign the passport
+        {mode === "signin" ? "Welcome back" : "Create your passport"}
       </p>
       <h1 className="font-serif text-[40px] md:text-[52px] leading-[1.02] text-ink mb-3">
-        Who's holding the pen?
+        {mode === "signin" ? "Sign in" : "Sign up"}
       </h1>
       <p className="text-[15.5px] leading-[1.55] text-ink-soft max-w-[42ch] mb-10">
-        A name for the cover, so your stamps know where to land.
+        {mode === "signin"
+          ? "Pick up your saved Passport and keep going."
+          : "Set up a new Passport so your stamps know where to land."}
       </p>
+
+      <div className="mb-8 flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setMode("signin");
+            setError(null);
+          }}
+          className={`rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors ${
+            mode === "signin"
+              ? "border-ink bg-ink text-paper"
+              : "border-line bg-transparent text-ink-soft hover:text-ink"
+          }`}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode("signup");
+            setError(null);
+          }}
+          className={`rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors ${
+            mode === "signup"
+              ? "border-ink bg-ink text-paper"
+              : "border-line bg-transparent text-ink-soft hover:text-ink"
+          }`}
+        >
+          Create account
+        </button>
+      </div>
 
       <Field label="Username">
         <div className="paper-card flex items-center gap-3 px-5 py-3.5">
@@ -75,19 +102,21 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
         </div>
       </Field>
 
-      <Field label="Email" optional>
-        <div className="paper-card flex items-center gap-3 px-5 py-3.5">
-          <AtSign className="size-4 text-ink-soft shrink-0" strokeWidth={1.6} />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@somewhere.com"
-            autoComplete="email"
-            className="flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-soft/45 focus:outline-none"
-          />
-        </div>
-      </Field>
+      {mode === "signup" && (
+        <Field label="Email" optional>
+          <div className="paper-card flex items-center gap-3 px-5 py-3.5">
+            <AtSign className="size-4 text-ink-soft shrink-0" strokeWidth={1.6} />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@somewhere.com"
+              autoComplete="email"
+              className="flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-soft/45 focus:outline-none"
+            />
+          </div>
+        </Field>
+      )}
 
       <Field label="Password">
         <div className="paper-card flex items-center gap-3 px-5 py-3.5">
@@ -98,7 +127,7 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
             placeholder="••••••••"
-            autoComplete="new-password"
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
             className="flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-soft/45 focus:outline-none"
           />
         </div>
@@ -110,7 +139,7 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
 
       <Actions
         primary={{
-          label: busy ? "Stamping…" : "Stamp my Passport",
+          label: busy ? "Stamping…" : mode === "signin" ? "Sign in" : "Create account",
           onClick: submit,
           disabled: busy,
         }}
@@ -121,7 +150,9 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
               <Loader2 className="size-3 animate-spin" /> talking to Knowhere…
             </span>
           ) : (
-            "We'll create or sign in to your Passport."
+            mode === "signin"
+              ? "Use your existing Passport account."
+              : "We'll create a new Passport account."
           )
         }
       />
@@ -136,7 +167,7 @@ function Field({
 }: {
   label: string;
   optional?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="mb-6">

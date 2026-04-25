@@ -1,5 +1,5 @@
 // Sign-in sheet — anonymous by default; calling open() lets the user
-// sign in or create an account against the Knowhere backend.
+// sign in against the Knowhere backend.
 
 import { useState } from "react";
 import { LogIn, Loader2, X } from "lucide-react";
@@ -14,11 +14,9 @@ interface SignInSheetProps {
 }
 
 export function SignInSheet({ open, onClose, onSuccess, reason }: SignInSheetProps) {
-  const { signIn, signUp, loading } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const { signIn, loading } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   if (!open) return null;
@@ -27,8 +25,7 @@ export function SignInSheet({ open, onClose, onSuccess, reason }: SignInSheetPro
     e.preventDefault();
     setError(null);
     try {
-      if (mode === "signin") await signIn(username.trim(), password);
-      else await signUp(username.trim(), password, email.trim() || undefined);
+      await signIn(username.trim(), password);
       onSuccess?.();
       onClose();
     } catch (err) {
@@ -42,11 +39,9 @@ export function SignInSheet({ open, onClose, onSuccess, reason }: SignInSheetPro
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">
-              {mode === "signin" ? "Welcome back" : "Join Knowhere"}
+              Welcome back
             </p>
-            <h2 className="mt-1 font-serif text-2xl">
-              {mode === "signin" ? "Sign in to sync" : "Create your account"}
-            </h2>
+            <h2 className="mt-1 font-serif text-2xl">Sign in to sync</h2>
             {reason && <p className="mt-1 text-xs text-muted-foreground">{reason}</p>}
           </div>
           <button onClick={onClose} aria-label="Close" className="text-muted-foreground">
@@ -62,21 +57,12 @@ export function SignInSheet({ open, onClose, onSuccess, reason }: SignInSheetPro
             autoComplete="username"
             required
           />
-          {mode === "signup" && (
-            <Field
-              label="Email (optional)"
-              value={email}
-              onChange={setEmail}
-              type="email"
-              autoComplete="email"
-            />
-          )}
           <Field
             label="Password"
             value={password}
             onChange={setPassword}
             type="password"
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            autoComplete="current-password"
             required
           />
 
@@ -91,7 +77,7 @@ export function SignInSheet({ open, onClose, onSuccess, reason }: SignInSheetPro
             disabled={loading || !username.trim() || !password}
             className={cn(
               "flex h-11 w-full items-center justify-center gap-2 rounded-full bg-stamp text-sm font-semibold text-stamp-foreground transition-opacity",
-              loading || !username.trim() || !password ? "opacity-50" : "hover:opacity-90",
+            loading || !username.trim() || !password ? "opacity-50" : "hover:opacity-90",
             )}
           >
             {loading ? (
@@ -99,21 +85,9 @@ export function SignInSheet({ open, onClose, onSuccess, reason }: SignInSheetPro
             ) : (
               <LogIn className="h-4 w-4" strokeWidth={2} />
             )}
-            {mode === "signin" ? "Sign in" : "Create account"}
+            Sign in
           </button>
         </form>
-
-        <button
-          onClick={() => {
-            setMode((m) => (m === "signin" ? "signup" : "signin"));
-            setError(null);
-          }}
-          className="mt-4 w-full text-center text-[12px] text-muted-foreground hover:text-foreground"
-        >
-          {mode === "signin"
-            ? "No account yet? Create one"
-            : "Have an account? Sign in"}
-        </button>
       </div>
     </div>
   );

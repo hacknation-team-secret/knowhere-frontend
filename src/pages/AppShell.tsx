@@ -34,6 +34,10 @@ export default function AppShell({ children }: { children?: ReactNode }) {
   const requireAuth = (reason?: string) =>
     new Promise<boolean>((resolve) => {
       if (auth.user) return resolve(true);
+      if (auth.loading) {
+        void auth.refresh().then((user) => resolve(!!user));
+        return;
+      }
       setAuthPrompt({ open: true, reason, resolve });
     });
 

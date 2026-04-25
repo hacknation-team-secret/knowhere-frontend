@@ -1,7 +1,8 @@
-// Auth hook — wraps the Knowhere backend OAuth2 flow.
+// Auth provider — wraps the Knowhere backend OAuth2 flow.
 // Anonymous by default; calling signIn/signUp persists a bearer token.
 
-import { useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { api, getToken, setToken, type ApiUser } from "@/lib/api";
 
 export interface AuthState {
@@ -10,7 +11,16 @@ export interface AuthState {
   error: string | null;
 }
 
-export function useAuth() {
+export interface AuthContextValue extends AuthState {
+  signIn: (username: string, password: string) => Promise<ApiUser>;
+  signUp: (username: string, password: string, email?: string) => Promise<ApiUser>;
+  signOut: () => void;
+  refresh: () => Promise<ApiUser | null>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+function useAuthState(): AuthContextValue {
   const [state, setState] = useState<AuthState>({
     user: null,
     loading: !!getToken(),
@@ -34,7 +44,7 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   const signIn = useCallback(
@@ -77,5 +87,16 @@ export function useAuth() {
     setState({ user: null, loading: false, error: null });
   }, []);
 
-  return { ...state, signIn, signUp, signOut, refresh };
+  return useMemo(() => ({ ...state, signIn, signUp, signOut, refresh }), [state, signIn, signUp, signOut, refresh]);
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const auth = useAuthState();
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }
