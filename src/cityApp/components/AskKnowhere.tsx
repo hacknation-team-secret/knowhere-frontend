@@ -3,12 +3,13 @@
 // that locally re-runs the deterministic generator with the same prompt.
 
 import { useState } from "react";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles, MessageSquare } from "lucide-react";
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
 import { refineDetour } from "@/cityApp/lib/detours";
 import type { Detour } from "@/cityApp/lib/types";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface AskKnowhereProps {
   baseDetour: Detour;
@@ -24,6 +25,7 @@ const SUGGESTIONS = [
 
 export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
   const { profile, auth, requireAuth } = useApp();
+  const navigate = useNavigate();
   const [text, setText] = useState("");
   const [thinking, setThinking] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
@@ -133,6 +135,13 @@ export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
           <p className="mt-1 whitespace-pre-line font-serif text-[15px] leading-relaxed text-foreground/85">
             {answer}
           </p>
+          <button
+            onClick={() => navigate("/app/research")}
+            className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-stamp hover:opacity-80 transition-opacity"
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+            Continue in Research Chat
+          </button>
         </div>
       )}
 

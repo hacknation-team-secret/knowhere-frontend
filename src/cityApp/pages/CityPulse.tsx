@@ -4,17 +4,7 @@
 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Cloud,
-  CloudRain,
-  Compass,
-  Heart,
-  MapPin,
-  Snowflake,
-  Sparkles,
-  Sun,
-  Timer,
-} from "lucide-react";
+import { Bot, Cloud, CloudRain, Compass, Heart, MapPin, Snowflake, Sparkles, Sun, Timer } from "lucide-react";
 import { useApp } from "@/cityApp/CityShell";
 import { InteractiveBostonMap } from "@/cityApp/components/InteractiveBostonMap";
 import { EditableChip } from "@/cityApp/components/EditableChip";
@@ -35,6 +25,7 @@ import {
 } from "@/cityApp/lib/context";
 import type { Detour, Neighborhood } from "@/cityApp/lib/types";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 const NEIGHBORHOOD_NAMES = NEIGHBORHOODS.map((n) => n.name) as Neighborhood[];
 
@@ -251,6 +242,23 @@ export default function CityPulse() {
         baseDetour={primaryDetour}
         onResult={(d) => navigate(`/detour/${d.id}`, { state: { detour: d } })}
       />
+
+      {/* Research Agent CTA */}
+      <Link
+        to="/app/research"
+        className="flex items-center justify-between rounded-3xl border border-line bg-paper-soft p-6 shadow-sm hover:border-stamp/40 transition-colors group"
+      >
+        <div className="flex gap-4 items-center">
+          <div className="h-12 w-12 rounded-full bg-stamp/10 text-stamp flex items-center justify-center shrink-0">
+            <Bot className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="font-serif text-lg text-ink">Chat with the Research Agent</h3>
+            <p className="text-sm text-ink-soft">Get deep insights based on your passport history.</p>
+          </div>
+        </div>
+        <Sparkles className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />
+      </Link>
     </div>
   );
 }
