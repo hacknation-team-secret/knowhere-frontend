@@ -32,19 +32,24 @@ export function WelcomeScreen({ onNext, onSignIn }: { onNext: () => void; onSign
             <span className="font-serif italic text-[17px]">Start wandering</span>
             <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
           </Button>
-          <button
-            type="button"
-            onClick={onSignIn}
-            className="group px-1 py-1 text-left text-ink-soft transition-colors hover:text-ink"
-          >
-            <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft/80">
-              Already have an account?
-            </span>
-            <span className="mt-1 flex items-center gap-1.5 font-serif text-[15px] italic text-ink-soft group-hover:text-ink">
+          <p className="px-1 text-[13px] text-ink-soft/80">
+            Already have an account?{" "}
+            <span
+              role="link"
+              tabIndex={0}
+              onClick={onSignIn}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSignIn();
+                }
+              }}
+              className="group inline-flex cursor-pointer items-center gap-1 font-serif italic text-ink-soft transition-colors hover:text-ink focus:outline-none focus:text-ink"
+            >
               Sign in
               <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
             </span>
-          </button>
+          </p>
         </div>
       </div>
 
