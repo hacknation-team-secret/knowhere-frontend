@@ -6,18 +6,26 @@ interface ShellProps {
   step: number;
   total: number;
   onBack?: () => void;
+  showBack?: boolean;
   /** When true, content takes full width inside the page (used for hero screens) */
   wide?: boolean;
 }
 
-export function Shell({ children, step, total, onBack, wide = false }: ShellProps) {
+export function Shell({
+  children,
+  step,
+  total,
+  onBack,
+  showBack = true,
+  wide = false,
+}: ShellProps) {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md">
         <div className="max-w-[1180px] mx-auto px-6 md:px-10 pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">
-            {onBack ? (
+            {showBack && onBack ? (
               <button
                 onClick={onBack}
                 aria-label="Back"

@@ -97,7 +97,13 @@ export function OnboardingFlow() {
   };
 
   return (
-    <Shell step={idx} total={total} onBack={back} wide={wide}>
+    <Shell
+      step={idx}
+      total={total}
+      onBack={back}
+      showBack={screen !== "welcome"}
+      wide={wide}
+    >
       {screen === "welcome" && (
         <WelcomeScreen
           onNext={() => {
