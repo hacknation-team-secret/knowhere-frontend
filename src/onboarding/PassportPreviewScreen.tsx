@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { Clock } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Clock, Sparkles } from "lucide-react";
 import { Stamp, StampPill } from "./Stamp";
 import { Actions } from "./Actions";
-import { Wave } from "./decor";
+import { Compass, Spark, Wave } from "./decor";
 import { STARTER_DETOURS } from "./mockDetours";
 import type { PassportState } from "./types";
 import { api, type ApiEvent } from "@/lib/api";
@@ -44,6 +44,9 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
 
   const chips = buildContextChips(state);
   const stampCount = attended.length;
+  const visualWords = buildVisualWords(state);
+  const displayName = state.name || state.auth?.username || "Traveler";
+  const palette = useMemo(() => paletteFromState(state), [state]);
 
   return (
     <section>
@@ -57,79 +60,119 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
         <Wave className="mx-auto mt-4 w-20 text-coral/60" />
       </div>
 
-      {/* Passport card */}
       <article className="paper-card-lift overflow-hidden mb-12">
-        <div className="px-7 pt-6 pb-5 flex items-start justify-between gap-6">
-          <div>
-            <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-1">
-              Knowhere · Passport
+        <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="relative overflow-hidden border-b border-line/70 lg:border-b-0 lg:border-r">
+            <div
+              className="absolute inset-0 opacity-95"
+              style={{
+                background: `radial-gradient(circle at 18% 20%, ${palette[0]} 0%, transparent 28%), radial-gradient(circle at 82% 16%, ${palette[1]} 0%, transparent 26%), linear-gradient(145deg, ${palette[2]} 0%, rgba(255,251,243,0.97) 48%, ${palette[3]} 100%)`,
+              }}
+            />
+            <div className="absolute -left-8 top-10 h-28 w-28 rounded-full border border-white/40 bg-white/10 blur-[1px]" />
+            <div className="absolute right-8 top-12 text-white/60">
+              <Compass className="size-16" />
             </div>
-            <div className="font-serif text-[22px] text-ink leading-tight">
-              {state.auth?.username
-                ? `@${state.auth.username}`
-                : `No. KH-${passportNo()}`}
+            <div className="absolute left-[18%] top-[34%] text-white/70">
+              <Spark className="size-5 rotate-12" />
             </div>
-            {state.auth && (
-              <div className="text-[11.5px] text-ink-soft mt-1">
-                Issued · No. KH-{String(state.auth.userId).padStart(6, "0")}
+            <div className="absolute right-[20%] bottom-[26%] text-white/75">
+              <Spark className="size-4 -rotate-6" />
+            </div>
+
+            <div className="relative min-h-[340px] p-7 md:p-8 flex flex-col justify-between">
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <div className="text-[10.5px] tracking-[0.22em] uppercase text-white/78 mb-2">
+                    Knowhere · Passport image
+                  </div>
+                  <div className="font-serif text-[34px] md:text-[42px] leading-[0.98] text-white max-w-[10ch]">
+                    {displayName}
+                  </div>
+                  <div className="mt-3 text-[12px] uppercase tracking-[0.2em] text-white/74">
+                    {state.trip.city} · {state.trip.timing || "right now"}
+                  </div>
+                </div>
+                <div className={stampIn ? "animate-stamp-press" : "opacity-0"}>
+                  <Stamp tone="gold" className="border-white/65 text-white">
+                    {state.trip.city || "City"}<br />· issued ·
+                  </Stamp>
+                </div>
+              </div>
+
+              <div className="max-w-[18rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-white/80">
+                  <Sparkles className="size-3.5" strokeWidth={1.8} />
+                  Visual ingest
+                </div>
+                <p className="mt-2 font-serif text-[20px] leading-[1.18] text-white">
+                  {truncate(styleSummary, 92)}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {visualWords.map((word) => (
+                    <span
+                      key={word}
+                      className="rounded-full border border-white/35 bg-white/16 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/88"
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-paper-soft p-7 md:p-8">
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-1">
+                  Passport holder
+                </div>
+                <div className="font-serif text-[24px] text-ink leading-tight">
+                  {displayName}
+                </div>
+                <div className="text-[11.5px] text-ink-soft mt-1">
+                  {state.auth?.username
+                    ? `@${state.auth.username}`
+                    : `No. KH-${passportNo()}`}
+                </div>
+                {state.auth && (
+                  <div className="text-[11.5px] text-ink-soft mt-1">
+                    Issued · No. KH-{String(state.auth.userId).padStart(6, "0")}
+                  </div>
+                )}
+              </div>
+              <PostcardMeta
+                city={state.trip.city}
+                area={state.trip.area}
+                timing={state.trip.timing}
+                confidence={state.profile?.confidence}
+              />
+            </div>
+
+            <div className="mt-7">
+              <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-2">
+                Parsed into your passport
+              </div>
+              <p className="font-serif text-[22px] leading-[1.25] text-ink max-w-[24ch]">
+                {truncate(styleSummary, 120)}
+              </p>
+            </div>
+
+            {chips.length > 0 && (
+              <div className="mt-6">
+                <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-3">
+                  Captured signals
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {chips.map((c) => (
+                    <span key={c} className="chip">{c}</span>
+                  ))}
+                </div>
               </div>
             )}
           </div>
-          <div className={stampIn ? "animate-stamp-press" : "opacity-0"}>
-            <Stamp tone="coral">
-              {state.trip.city || "City"}<br />· issued ·
-            </Stamp>
-          </div>
         </div>
-
-        <div className="px-7 pb-6">
-          <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-2">
-            Travel style
-          </div>
-          <p className="font-serif text-[20px] leading-[1.35] text-ink max-w-[58ch]">
-            {styleSummary}
-          </p>
-          {state.profile?.confidence && (
-            <p className="text-[12px] text-ink-soft mt-3">
-              Confidence — <span className="text-ink">{state.profile.confidence}</span>
-            </p>
-          )}
-        </div>
-
-        <div className="perforation" />
-
-        <div className="px-7 py-5 flex items-center justify-between bg-paper">
-          <div>
-            <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft">
-              Wakes up in
-            </div>
-            <div className="font-serif text-[18px] text-ink mt-0.5">{state.trip.city}</div>
-            {state.trip.area && (
-              <div className="text-[12.5px] text-ink-soft mt-0.5">{state.trip.area}</div>
-            )}
-          </div>
-          {state.trip.timing && (
-            <div className="text-right">
-              <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft">When</div>
-              <div className="font-serif text-[16px] text-ink mt-0.5 capitalize">
-                {state.trip.timing}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {chips.length > 0 && (
-          <div className="px-7 py-5 border-t border-line/70">
-            <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-3">
-              Context
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {chips.map((c) => (
-                <span key={c} className="chip">{c}</span>
-              ))}
-            </div>
-          </div>
-        )}
       </article>
 
       {/* Stamp collection */}
@@ -218,6 +261,28 @@ function SectionHeader({ title, right }: { title: string; right?: string }) {
   );
 }
 
+function PostcardMeta({
+  city,
+  area,
+  timing,
+  confidence,
+}: {
+  city: string;
+  area?: string;
+  timing?: string;
+  confidence?: string;
+}) {
+  return (
+    <div className="rounded-[18px] border border-line/70 bg-paper p-4 min-w-[150px]">
+      <div className="text-[10px] tracking-[0.2em] uppercase text-ink-soft">Destination</div>
+      <div className="mt-1 font-serif text-[18px] text-ink">{city}</div>
+      {area && <div className="mt-1 text-[12px] text-ink-soft">{area}</div>}
+      {timing && <div className="mt-3 text-[12px] text-ink-soft capitalize">{timing}</div>}
+      {confidence && <div className="mt-1 text-[12px] text-ink-soft">{confidence}</div>}
+    </div>
+  );
+}
+
 function buildContextChips(state: PassportState): string[] {
   const chips: string[] = [];
   if (state.picks.userType) chips.push(state.picks.userType);
@@ -228,6 +293,38 @@ function buildContextChips(state: PassportState): string[] {
   state.picks.avoids.slice(0, 2).forEach((a) => chips.push("no " + a));
   state.profile?.pulls?.slice(0, 3).forEach((p) => chips.push(p));
   return chips.slice(0, 12);
+}
+
+function buildVisualWords(state: PassportState): string[] {
+  const words = [
+    ...(state.profile?.pulls ?? []),
+    ...(state.profile?.distinctive ?? []),
+    ...(state.picks.vibes ?? []),
+    ...(state.picks.interests ?? []),
+  ]
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(words)).slice(0, 5);
+}
+
+function paletteFromState(state: PassportState): [string, string, string, string] {
+  const source = JSON.stringify({
+    style: state.profile?.travelStyle,
+    pulls: state.profile?.pulls,
+    pace: state.profile?.pace,
+    city: state.trip.city,
+    name: state.name,
+  });
+  const sum = Array.from(source).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const palettes: Array<[string, string, string, string]> = [
+    ["rgba(127, 166, 199, 0.82)", "rgba(216, 168, 79, 0.58)", "rgba(14, 79, 85, 0.92)", "rgba(255, 251, 243, 0.88)"],
+    ["rgba(196, 90, 67, 0.72)", "rgba(127, 166, 199, 0.52)", "rgba(139, 47, 73, 0.88)", "rgba(255, 248, 236, 0.92)"],
+    ["rgba(85, 107, 62, 0.76)", "rgba(216, 168, 79, 0.48)", "rgba(47, 127, 134, 0.88)", "rgba(255, 251, 243, 0.94)"],
+    ["rgba(14, 79, 85, 0.8)", "rgba(196, 90, 67, 0.52)", "rgba(127, 166, 199, 0.9)", "rgba(255, 249, 240, 0.94)"],
+  ];
+
+  return palettes[sum % palettes.length];
 }
 
 function quickPicksSummary(state: PassportState): string | null {
@@ -242,4 +339,9 @@ function quickPicksSummary(state: PassportState): string | null {
 
 function passportNo() {
   return Math.floor(100000 + Math.random() * 899999);
+}
+
+function truncate(value: string, max: number) {
+  if (value.length <= max) return value;
+  return `${value.slice(0, max).trim()}…`;
 }

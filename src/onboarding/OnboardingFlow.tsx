@@ -8,6 +8,7 @@ import { PasteScreen } from "./PasteScreen";
 import { QuickPicksScreen } from "./QuickPicksScreen";
 import { CityScreen } from "./CityScreen";
 import { AuthScreen } from "./AuthScreen";
+import { PassportPreviewScreen } from "./PassportPreviewScreen";
 import { DEFAULT_STATE, type PassportState, type AuthInfo } from "./types";
 import { api } from "@/lib/api";
 import { buildDescriptionFromState, parseProfile } from "./prompt";
@@ -20,7 +21,8 @@ type Screen =
   | "paste"
   | "picks"
   | "city"
-  | "auth";
+  | "auth"
+  | "preview";
 
 const ORDER_PROFILE: Screen[] = [
   "welcome",
@@ -29,6 +31,7 @@ const ORDER_PROFILE: Screen[] = [
   "paste",
   "city",
   "auth",
+  "preview",
 ];
 const ORDER_PICKS: Screen[] = [
   "welcome",
@@ -37,6 +40,7 @@ const ORDER_PICKS: Screen[] = [
   "picks",
   "city",
   "auth",
+  "preview",
 ];
 
 export function OnboardingFlow() {
@@ -52,7 +56,7 @@ export function OnboardingFlow() {
   const goTo = (s: Screen) => setScreen(s);
   const back = screen !== "welcome" && idx > 0 ? () => goTo(order[idx - 1]) : undefined;
 
-  const wide = screen === "welcome";
+  const wide = screen === "welcome" || screen === "preview";
 
   const handleAuthed = async (auth: AuthInfo, current: PassportState) => {
     let nextState: PassportState = { ...current, auth };
@@ -74,7 +78,7 @@ export function OnboardingFlow() {
       nextState = { ...current, auth };
     }
     setState(nextState);
-    enterApp("/app/research", nextState);
+    goTo("preview");
   };
 
   const enterApp = (path: "/app" | "/app/detour" | "/app/research", nextState = state) => {
@@ -171,6 +175,13 @@ export function OnboardingFlow() {
             };
             handleAuthed(auth, state);
           }}
+        />
+      )}
+
+      {screen === "preview" && (
+        <PassportPreviewScreen
+          state={state}
+          onEnter={() => enterApp("/app/research")}
         />
       )}
     </Shell>
