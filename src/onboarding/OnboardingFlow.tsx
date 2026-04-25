@@ -27,19 +27,19 @@ type Screen =
 const ORDER_PROFILE: Screen[] = [
   "welcome",
   "name",
+  "auth",
   "prompt",
   "paste",
   "city",
-  "auth",
   "preview",
 ];
 const ORDER_PICKS: Screen[] = [
   "welcome",
   "name",
+  "auth",
   "prompt",
   "picks",
   "city",
-  "auth",
   "preview",
 ];
 
@@ -60,6 +60,7 @@ export function OnboardingFlow() {
 
   const handleAuthed = async (auth: AuthInfo, current: PassportState) => {
     let nextState: PassportState = { ...current, auth };
+    let nextScreen: Screen = "prompt";
 
     // If the user already has a description, use it to populate the profile.
     try {
@@ -67,6 +68,7 @@ export function OnboardingFlow() {
       if (user.description && user.description.includes("KNOWHERE PASSPORT")) {
         const profile = parseProfile(user.description);
         nextState = { ...current, profile, auth };
+        nextScreen = "preview";
       } else {
         // Persist a Knowhere description on the user account, fire-and-forget.
         const description = buildDescriptionFromState(current);
@@ -78,7 +80,7 @@ export function OnboardingFlow() {
       nextState = { ...current, auth };
     }
     setState(nextState);
-    goTo("preview");
+    goTo(nextScreen);
   };
 
   const enterApp = (path: "/app" | "/app/detour" | "/app/research", nextState = state) => {
@@ -126,7 +128,7 @@ export function OnboardingFlow() {
           initialName={state.name}
           onContinue={(name) => {
             setState((s) => ({ ...s, name }));
-            goTo("prompt");
+            goTo("auth");
           }}
         />
       )}
@@ -159,7 +161,7 @@ export function OnboardingFlow() {
         <CityScreen
           trip={state.trip}
           onChange={(trip) => setState((s) => ({ ...s, trip }))}
-          onContinue={() => goTo("auth")}
+          onContinue={() => goTo("preview")}
         />
       )}
 
