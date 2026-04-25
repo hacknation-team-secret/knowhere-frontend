@@ -10,6 +10,7 @@ import CityPulse from "./cityApp/pages/CityPulse";
 import Detour from "./cityApp/pages/Detour";
 import DetourDetail from "./cityApp/pages/DetourDetail";
 import Events from "./cityApp/pages/Events";
+import Research from "./cityApp/pages/Research";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="detour/:id" element={<DetourDetail />} />
             <Route path="passport" element={<Detour />} />
             <Route path="events" element={<Events />} />
+            <Route path="research" element={<Research />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

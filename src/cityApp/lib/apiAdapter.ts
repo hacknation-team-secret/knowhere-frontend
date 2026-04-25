@@ -11,6 +11,10 @@ export const api = {
     return mainApi.research(query);
   },
 
+  async chat(message: string): Promise<{ answer: string }> {
+    return mainApi.chat(message);
+  },
+
   async createDetour(name: string, eventIds: number[], description?: string) {
     return mainApi.createDetour(name, eventIds, description);
   },

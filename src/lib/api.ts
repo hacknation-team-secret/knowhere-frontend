@@ -167,6 +167,13 @@ export const api = {
   passport: (username: string) =>
     request<ApiPassport>(`/users/${encodeURIComponent(username)}/passport`),
 
+  chat: (message: string) =>
+    request<{ answer: string }>("/chat", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+      headers: { "Content-Type": "application/json" },
+    }),
+
   research: (query: string) =>
     request<{ answer: string }>("/research", {
       method: "POST",

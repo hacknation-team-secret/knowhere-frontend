@@ -7,7 +7,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Compass, MapPin, Route as RouteIcon, User, Sparkles } from "lucide-react";
+import { Compass, MapPin, Route as RouteIcon, User, Sparkles, Bot } from "lucide-react";
 import type {
   Detour,
   PassportEntry,
@@ -176,6 +176,9 @@ function TopNav() {
           <NavItem to="/app/events" icon={<Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} />}>
             Explore
           </NavItem>
+          <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
+            Research
+          </NavItem>
           <NavItem to="/app/detour" icon={<RouteIcon className="h-3.5 w-3.5" strokeWidth={1.75} />}>
             Detour
           </NavItem>
@@ -201,6 +204,9 @@ function TopNav() {
         </NavItem>
         <NavItem to="/app/events" icon={<Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} />}>
           Explore
+        </NavItem>
+        <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
+          Research
         </NavItem>
         <NavItem to="/app/detour" icon={<RouteIcon className="h-3.5 w-3.5" strokeWidth={1.75} />}>
           Detour
