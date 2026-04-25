@@ -7,12 +7,32 @@ export function setAuthToken(token: string | null) {
 }
 
 export const api = {
-  async research(query: string, threadId?: number): Promise<{ answer: string; thread_id: number }> {
-    return mainApi.research(query, threadId);
+  async research(query: string, threadId?: number, groupId?: number): Promise<{ answer: string; thread_id: number }> {
+    return mainApi.research(query, threadId, groupId);
   },
 
-  async chat(message: string, threadId?: number): Promise<{ answer: string; thread_id: number }> {
-    return mainApi.chat(message, threadId);
+  async chat(message: string, threadId?: number, groupId?: number): Promise<{ answer: string; thread_id: number }> {
+    return mainApi.chat(message, threadId, groupId);
+  },
+
+  async listUsers() {
+    return mainApi.listUsers();
+  },
+
+  async listGroups() {
+    return mainApi.listGroups();
+  },
+
+  async createGroup(name: string, description?: string) {
+    return mainApi.createGroup(name, description);
+  },
+
+  async inviteToGroup(groupId: number, username: string) {
+    return mainApi.inviteToGroup(groupId, username);
+  },
+
+  async acceptGroupInvite(groupId: number) {
+    return mainApi.acceptGroupInvite(groupId);
   },
 
   async captureResearch(threadId: number, imageUrl?: string) {

@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Send, Sparkles, User, Bot, BookmarkPlus, Check } from "lucide-react";
+import { Loader2, Send, Sparkles, User, Bot, BookmarkPlus, Check, Users, UserPlus } from "lucide-react";
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import type { ApiGroup, ApiPublicUser } from "@/lib/api";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,10 +13,10 @@ interface Message {
 }
 
 const SUGGESTIONS = [
+  "Plan an itinerary for my group using everyone's passports.",
   "What should I do this weekend based on my passport?",
   "Analyze my travel style from my detours.",
   "Recommend a new neighborhood for me to explore.",
-  "How many stamps have I collected so far?",
 ];
 
 export default function Research() {
@@ -31,7 +32,23 @@ export default function Research() {
   );
   const [isCapturing, setIsCapturing] = useState(false);
   const [isCaptured, setIsCaptured] = useState(false);
+  const [users, setUsers] = useState<ApiPublicUser[]>([]);
+  const [groups, setGroups] = useState<ApiGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
+  const [groupName, setGroupName] = useState("Weekend crew");
+  const [groupDescription, setGroupDescription] = useState("A shared trip plan that balances food, culture, pace, and budget.");
+  const [inviteUsername, setInviteUsername] = useState("");
+  const [groupLoading, setGroupLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const selectedGroup = groups.find((group) => group.id === selectedGroupId);
+  const selectedMembership = selectedGroup?.memberships.find(
+    (membership) => membership.user.id === auth.user?.id,
+  );
+  const canUseSelectedGroup = !!selectedGroup && selectedMembership?.status === "accepted";
+  const invitableUsers = users.filter(
+    (user) => !selectedGroup?.memberships.some((membership) => membership.user.id === user.id),
+  );
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -46,7 +63,32 @@ export default function Research() {
       // In a real app, we'd fetch the thread history here.
       // api.getThread(threadId).then(t => setMessages(t.messages.map(m => ({role: m.role, content: m.content}))))
     }
-  }, [threadId]);
+  }, [messages.length, threadId]);
+
+  useEffect(() => {
+    if (!auth.user) return;
+
+    let cancelled = false;
+    const loadGroups = async () => {
+      try {
+        const [nextUsers, nextGroups] = await Promise.all([
+          api.listUsers(),
+          api.listGroups(),
+        ]);
+        if (cancelled) return;
+        setUsers(nextUsers);
+        setGroups(nextGroups);
+        setSelectedGroupId((current) => current ?? nextGroups[0]?.id);
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message);
+      }
+    };
+
+    void loadGroups();
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.user]);
 
   const submit = async (raw: string) => {
     const query = raw.trim();
@@ -67,7 +109,7 @@ export default function Research() {
         }
       }
 
-      const res = await api.chat(query, threadId);
+      const res = await api.chat(query, threadId, canUseSelectedGroup && selectedGroup ? selectedGroup.id : undefined);
       setMessages((prev) => [...prev, { role: "assistant", content: res.answer }]);
       if (res.thread_id) {
         setThreadId(res.thread_id);
@@ -76,6 +118,50 @@ export default function Research() {
       setError((e as Error).message);
     } finally {
       setThinking(false);
+    }
+  };
+
+  const createGroup = async () => {
+    if (!groupName.trim()) return;
+    setGroupLoading(true);
+    try {
+      const group = await api.createGroup(groupName.trim(), groupDescription.trim() || undefined);
+      setGroups((prev) => [group, ...prev]);
+      setSelectedGroupId(group.id);
+      toast({ title: "Group created", description: "Invite platform users to plan together." });
+    } catch (e) {
+      toast({ title: "Group failed", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
+  const inviteUser = async () => {
+    if (!selectedGroup || !inviteUsername) return;
+    setGroupLoading(true);
+    try {
+      const group = await api.inviteToGroup(selectedGroup.id, inviteUsername);
+      setGroups((prev) => prev.map((item) => item.id === group.id ? group : item));
+      setInviteUsername("");
+      toast({ title: "Invite sent", description: `${inviteUsername} can now join this trip group.` });
+    } catch (e) {
+      toast({ title: "Invite failed", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
+  const acceptInvite = async (groupId: number) => {
+    setGroupLoading(true);
+    try {
+      const group = await api.acceptGroupInvite(groupId);
+      setGroups((prev) => prev.map((item) => item.id === group.id ? group : item));
+      setSelectedGroupId(group.id);
+      toast({ title: "Joined group", description: "The research agent can now plan with this group." });
+    } catch (e) {
+      toast({ title: "Join failed", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setGroupLoading(false);
     }
   };
 
@@ -101,7 +187,126 @@ export default function Research() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] max-w-3xl mx-auto">
+    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[320px_1fr]">
+      <aside className="rounded-[2rem] border border-line bg-card p-5 shadow-sm h-fit">
+        <div className="flex items-center gap-2 text-ink">
+          <Users className="h-5 w-5 text-stamp" strokeWidth={2} />
+          <h2 className="font-serif text-xl">Trip Groups</h2>
+        </div>
+        <p className="mt-2 text-sm text-ink-soft">
+          Invite users on Knowhere, then ask the agent for itineraries that combine everyone's passport.
+        </p>
+
+        {!auth.user ? (
+          <p className="mt-5 rounded-2xl border border-dashed border-line p-4 text-sm text-ink-soft">
+            Sign in to discover users and create a group trip.
+          </p>
+        ) : (
+          <div className="mt-5 space-y-5">
+            <div className="space-y-2">
+              <input
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                className="h-10 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Group name"
+              />
+              <textarea
+                value={groupDescription}
+                onChange={(e) => setGroupDescription(e.target.value)}
+                className="min-h-20 w-full rounded-xl border border-line bg-paper px-3 py-2 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Trip goals, dates, constraints"
+              />
+              <button
+                type="button"
+                onClick={createGroup}
+                disabled={groupLoading || !groupName.trim()}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                Create Group
+              </button>
+            </div>
+
+            {groups.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+                  Active Group
+                </label>
+                <select
+                  value={selectedGroupId ?? ""}
+                  onChange={(e) => setSelectedGroupId(Number(e.target.value) || undefined)}
+                  className="h-10 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                >
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>{group.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {selectedGroup && (
+              <div className="rounded-2xl border border-line bg-paper-soft p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-serif text-lg text-ink">{selectedGroup.name}</h3>
+                    <p className="text-xs text-ink-soft">{selectedGroup.description}</p>
+                  </div>
+                  {selectedMembership?.status === "pending" && (
+                    <button
+                      type="button"
+                      onClick={() => acceptInvite(selectedGroup.id)}
+                      className="rounded-full bg-stamp px-3 py-1 text-xs font-semibold text-white"
+                    >
+                      Join
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {selectedGroup.memberships.map((membership) => (
+                    <span
+                      key={membership.user.id}
+                      className={cn(
+                        "rounded-full border px-2.5 py-1 text-xs",
+                        membership.status === "accepted"
+                          ? "border-stamp/30 bg-stamp/10 text-stamp"
+                          : "border-line bg-card text-ink-soft",
+                      )}
+                    >
+                      @{membership.user.username} {membership.status === "pending" ? "(pending)" : ""}
+                    </span>
+                  ))}
+                </div>
+
+                {selectedMembership?.status === "accepted" && invitableUsers.length > 0 && (
+                  <div className="mt-4 flex gap-2">
+                    <select
+                      value={inviteUsername}
+                      onChange={(e) => setInviteUsername(e.target.value)}
+                      className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
+                    >
+                      <option value="">Invite user</option>
+                      {invitableUsers.map((user) => (
+                        <option key={user.id} value={user.username}>@{user.username}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={inviteUser}
+                      disabled={groupLoading || !inviteUsername}
+                      className="rounded-xl bg-stamp px-3 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      Invite
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </aside>
+
+      <div className="flex flex-col h-[calc(100vh-180px)] min-w-0">
       <header className="mb-6 flex justify-between items-end">
         <div>
           <div className="flex items-center gap-2">
@@ -153,8 +358,13 @@ export default function Research() {
             </div>
             <h2 className="font-serif text-xl text-ink">How can I help you explore?</h2>
             <p className="text-ink-soft text-sm mt-1 max-w-sm mx-auto">
-              I can analyze your {passport.length} collected detours and suggest what's next for your journey.
+              I can analyze your {passport.length} collected detours{canUseSelectedGroup && selectedGroup ? ` plus ${selectedGroup.memberships.filter((m) => m.status === "accepted").length} group passports` : ""} and suggest what's next.
             </p>
+            {canUseSelectedGroup && selectedGroup && (
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-stamp">
+                Planning with {selectedGroup.name}
+              </p>
+            )}
             
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-3 max-w-lg mx-auto">
               {SUGGESTIONS.map((s) => (
@@ -240,6 +450,7 @@ export default function Research() {
           <Send className="h-5 w-5" strokeWidth={2} />
         </button>
       </form>
+      </div>
     </div>
   );
 }

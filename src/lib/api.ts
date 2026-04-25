@@ -113,6 +113,43 @@ export interface ApiPassport {
   attended_events: ApiEvent[];
 }
 
+export interface ApiPublicUser {
+  id: number;
+  username: string;
+  email?: string | null;
+  description?: string | null;
+  research_count: number;
+}
+
+export interface ApiGroupMembership {
+  user: ApiPublicUser;
+  status: string;
+  created_at: string;
+}
+
+export interface ApiGroup {
+  id: number;
+  name: string;
+  description?: string | null;
+  owner_id: number;
+  created_at: string;
+  memberships: ApiGroupMembership[];
+}
+
+export interface ApiResearchMessage {
+  id: number;
+  role: string;
+  content: string;
+  created_at: string;
+}
+
+export interface ApiResearchThread {
+  id: number;
+  title: string | null;
+  created_at: string;
+  messages: ApiResearchMessage[];
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -137,6 +174,8 @@ export const api = {
   logout: () => setToken(null),
 
   me: () => request<ApiUser>("/users/me"),
+
+  listUsers: () => request<ApiPublicUser[]>("/users"),
 
   updateDescription: (description: string) =>
     request<unknown>("/users/me/description", {
@@ -168,34 +207,48 @@ export const api = {
   passport: (username: string) =>
     request<ApiPassport>(`/users/${encodeURIComponent(username)}/passport`),
 
-  chat: (message: string, threadId?: number) =>
-    request<{ answer: string; thread_id: number }>("/research", {
+  createGroup: (name: string, description?: string) =>
+    request<ApiGroup>("/groups", {
       method: "POST",
-      body: JSON.stringify({ query: message, thread_id: threadId }),
+      body: JSON.stringify({ name, description }),
       headers: { "Content-Type": "application/json" },
     }),
 
-  research: (query: string, threadId?: number) =>
+  listGroups: () => request<ApiGroup[]>("/groups"),
+
+  inviteToGroup: (groupId: number, username: string) =>
+    request<ApiGroup>(`/groups/${groupId}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ username }),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  acceptGroupInvite: (groupId: number) =>
+    request<ApiGroup>(`/groups/${groupId}/accept`, { method: "POST" }),
+
+  chat: (message: string, threadId?: number, groupId?: number) =>
     request<{ answer: string; thread_id: number }>("/research", {
       method: "POST",
-      body: JSON.stringify({ query, thread_id: threadId }),
+      body: JSON.stringify({ query: message, thread_id: threadId, group_id: groupId }),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  research: (query: string, threadId?: number, groupId?: number) =>
+    request<{ answer: string; thread_id: number }>("/research", {
+      method: "POST",
+      body: JSON.stringify({ query, thread_id: threadId, group_id: groupId }),
       headers: { "Content-Type": "application/json" },
     }),
 
   createThread: (title?: string) =>
-    request<{ id: number; title: string | null; created_at: string; messages: any[] }>(
-      "/research/threads",
-      {
-        method: "POST",
-        body: JSON.stringify({ title }),
-        headers: { "Content-Type": "application/json" },
-      },
-    ),
+    request<ApiResearchThread>("/research/threads", {
+      method: "POST",
+      body: JSON.stringify({ title }),
+      headers: { "Content-Type": "application/json" },
+    }),
 
   listThreads: () =>
-    request<{ id: number; title: string | null; created_at: string; messages: any[] }[]>(
-      "/research/threads",
-    ),
+    request<ApiResearchThread[]>("/research/threads"),
 
   captureResearch: (threadId: number, imageUrl?: string) =>
     request<unknown>("/research/capture", {
