@@ -43,25 +43,6 @@ export function PasteScreen({
       <p className="text-[11px] tracking-[0.22em] uppercase text-ink-soft mb-4">
         Step two
       </p>
-      <div className="paper-card p-6 md:p-7 space-y-5 mb-8">
-        <Field
-          icon={<Instagram className="size-4" strokeWidth={1.75} />}
-          label="Instagram"
-          placeholder="@yourhandle or full link"
-          value={instagram}
-          onChange={setInstagram}
-        />
-        <Field
-          icon={<TiktokGlyph />}
-          label="TikTok"
-          placeholder="@yourhandle or full link"
-          value={tiktok}
-          onChange={setTiktok}
-        />
-        <p className="text-[12px] text-ink-soft/80 leading-relaxed">
-          Optional. We only use these as a soft signal. Nothing is posted, followed, or shared.
-        </p>
-      </div>
       <h1 className="font-serif text-[40px] md:text-[52px] leading-[1.02] text-ink mb-4">
         What did it find?
       </h1>
@@ -85,6 +66,26 @@ export function PasteScreen({
             {pasted.trim().length} characters
           </span>
         </div>
+      </div>
+
+      <div className="paper-card p-6 md:p-7 space-y-5 mt-6">
+        <Field
+          icon={<Instagram className="size-4" strokeWidth={1.75} />}
+          label="Instagram"
+          placeholder="@yourhandle or full link"
+          value={instagram}
+          onChange={setInstagram}
+        />
+        <Field
+          icon={<TiktokGlyph />}
+          label="TikTok"
+          placeholder="@yourhandle or full link"
+          value={tiktok}
+          onChange={setTiktok}
+        />
+        <p className="text-[12px] text-ink-soft/80 leading-relaxed">
+          Optional. We only use these as a soft signal. Nothing is posted, followed, or shared.
+        </p>
       </div>
 
       {preview && <ProfilePreview profile={preview} />}
@@ -170,15 +171,15 @@ function TiktokGlyph() {
 }
 
 function ProfilePreview({ profile }: { profile: ParsedProfile }) {
-  const rows: Array<[string, string | string[] | undefined]> = [
-    ["Travel style", profile.travelStyle],
-    ["Pulls", profile.pulls],
-    ["Pushes", profile.pushes],
-    ["Pace", profile.pace],
-    ["Best detour", profile.bestDetour],
-    ["Confidence", profile.confidence],
+  const rows: Array<[string, string, string | string[] | undefined]> = [
+    ["Travel style", "🧭", profile.travelStyle],
+    ["Pulls", "✨", profile.pulls],
+    ["Pushes", "🚫", profile.pushes],
+    ["Pace", "⏱️", profile.pace],
+    ["Best detour", "📍", profile.bestDetour],
+    ["Confidence", "🔎", profile.confidence],
   ];
-  const filled = rows.filter(([, v]) => (Array.isArray(v) ? v.length : !!v));
+  const filled = rows.filter(([, , v]) => (Array.isArray(v) ? v.length : !!v));
   const isEmpty = filled.length === 0;
 
   return (
@@ -192,21 +193,22 @@ function ProfilePreview({ profile }: { profile: ParsedProfile }) {
           <span className="font-mono text-[12.5px] text-ink">KNOWHERE PASSPORT PROFILE</span>.
         </p>
       ) : (
-        <dl className="grid md:grid-cols-2 gap-x-8 gap-y-5">
-          {filled.map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-[10.5px] tracking-[0.18em] uppercase text-ink-soft mb-1.5">
+        <dl className="grid md:grid-cols-2 gap-3">
+          {filled.map(([label, emoji, value]) => (
+            <div key={label} className="rounded-[18px] border border-line/70 bg-paper-soft/70 p-4">
+              <dt className="flex items-center gap-2 text-[10.5px] tracking-[0.18em] uppercase text-ink-soft mb-2">
+                <span className="text-[14px] not-italic leading-none">{emoji}</span>
                 {label}
               </dt>
-              <dd className="text-[14px] text-ink leading-[1.55]">
+              <dd className="text-[13.5px] text-ink leading-[1.45]">
                 {Array.isArray(value) ? (
                   <div className="flex flex-wrap gap-1.5">
-                    {value.slice(0, 6).map((v, i) => (
+                    {value.slice(0, 4).map((v, i) => (
                       <span key={i} className="chip">{v}</span>
                     ))}
                   </div>
                 ) : (
-                  value
+                  <p>{truncate(value, 90)}</p>
                 )}
               </dd>
             </div>
@@ -215,4 +217,9 @@ function ProfilePreview({ profile }: { profile: ParsedProfile }) {
       )}
     </div>
   );
+}
+
+function truncate(value: string, max: number) {
+  if (value.length <= max) return value;
+  return `${value.slice(0, max).trim()}…`;
 }
