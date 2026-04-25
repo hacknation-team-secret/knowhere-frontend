@@ -12,6 +12,8 @@ import { api, type ApiEvent } from "@/lib/api";
 
 interface InteractiveBostonMapProps {
   height?: "sm" | "md" | "lg";
+  selectedEventId?: number | null;
+  onEventTap?: (eventId: number) => void;
 }
 
 const HEIGHTS = {
@@ -23,7 +25,11 @@ const HEIGHTS = {
 const DEFAULT_CENTER: LatLngTuple = [39.5, -98.35];
 const DEFAULT_ZOOM = 3;
 
-export function InteractiveBostonMap({ height = "md" }: InteractiveBostonMapProps) {
+export function InteractiveBostonMap({
+  height = "md",
+  selectedEventId,
+  onEventTap,
+}: InteractiveBostonMapProps) {
   const { data: events, isLoading, isError } = useQuery({
     queryKey: ["events"],
     queryFn: () => api.listEvents(),
@@ -38,6 +44,11 @@ export function InteractiveBostonMap({ height = "md" }: InteractiveBostonMapProp
         })
         .filter((item): item is { event: ApiEvent; location: LatLngTuple } => item !== null),
     [events],
+  );
+
+  const selectedEvent = useMemo(
+    () => plottedEvents.find(({ event }) => event.id === selectedEventId) ?? null,
+    [plottedEvents, selectedEventId],
   );
 
   const bounds = useMemo<LatLngBoundsExpression | null>(() => {
@@ -67,16 +78,30 @@ export function InteractiveBostonMap({ height = "md" }: InteractiveBostonMapProp
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <FitToBounds bounds={bounds} />
+          <FocusOnEvent event={selectedEvent} />
           {plottedEvents.map(({ event, location }) => (
             <CircleMarker
               key={event.id}
               center={location}
-              radius={8}
+              radius={selectedEventId === event.id ? 13 : 8}
               pathOptions={{
-                color: event.owner_type === "city" ? "#c2410c" : "#0f766e",
-                weight: 2,
-                fillColor: event.owner_type === "city" ? "#fb923c" : "#5eead4",
-                fillOpacity: 0.9,
+                color:
+                  selectedEventId === event.id
+                    ? "#7c2d12"
+                    : event.owner_type === "city"
+                      ? "#c2410c"
+                      : "#0f766e",
+                weight: selectedEventId === event.id ? 3 : 2,
+                fillColor:
+                  selectedEventId === event.id
+                    ? "#fde68a"
+                    : event.owner_type === "city"
+                      ? "#fb923c"
+                      : "#5eead4",
+                fillOpacity: selectedEventId === event.id ? 1 : 0.9,
+              }}
+              eventHandlers={{
+                click: () => onEventTap?.(event.id),
               }}
             >
               <Popup>
@@ -146,6 +171,17 @@ function FitToBounds({ bounds }: { bounds: LatLngBoundsExpression | null }) {
     }
     map.fitBounds(bounds, { padding: [36, 36], maxZoom: 11 });
   }, [bounds, map]);
+
+  return null;
+}
+
+function FocusOnEvent({ event }: { event: { event: ApiEvent; location: LatLngTuple } | null }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!event) return;
+    map.flyTo(event.location, 13, { duration: 0.6 });
+  }, [event, map]);
 
   return null;
 }

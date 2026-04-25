@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { useState } from "react";
 import { Calendar, MapPin, Plus, Check, Loader2, Sparkles } from "lucide-react";
 import { useApp } from "@/cityApp/CityShell";
+import { InteractiveBostonMap } from "@/components/InteractiveBostonMap";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +11,7 @@ export default function Events() {
   const { auth, addDetourToPassport } = useApp();
   const navigate = useNavigate();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [focusedEventId, setFocusedEventId] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
 
   const { data: events, isLoading } = useQuery({
@@ -99,15 +101,39 @@ export default function Events() {
         </p>
       </header>
 
+      <section className="space-y-3">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">
+              View on map
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Click a tile to center it on the map.
+            </p>
+          </div>
+          <span className="font-serif text-sm italic text-muted-foreground">
+            {events.length} mapped
+          </span>
+        </div>
+        <InteractiveBostonMap
+          height="md"
+          selectedEventId={focusedEventId}
+          onEventTap={(id) => setFocusedEventId(id)}
+        />
+      </section>
+
       <div className="grid gap-4 md:grid-cols-2">
         {events?.map((event) => (
           <div
             key={event.id}
+            onClick={() => setFocusedEventId(event.id)}
             className={cn(
-              "group relative flex flex-col rounded-3xl border p-5 transition-all",
-              selectedIds.includes(event.id)
-                ? "border-stamp bg-stamp/5 shadow-soft"
-                : "border-border/60 bg-card hover:border-border hover:shadow-sm"
+              "group relative flex cursor-pointer flex-col rounded-3xl border p-5 transition-all",
+              focusedEventId === event.id
+                ? "border-stamp ring-2 ring-stamp/30 shadow-soft"
+                : selectedIds.includes(event.id)
+                  ? "border-stamp bg-stamp/5 shadow-soft"
+                  : "border-border/60 bg-card hover:border-border hover:shadow-sm"
             )}
           >
             <div className="flex items-start justify-between gap-4">
@@ -125,7 +151,11 @@ export default function Events() {
                 </div>
               </div>
               <button
-                onClick={() => toggleSelect(event.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFocusedEventId(event.id);
+                  toggleSelect(event.id);
+                }}
                 className={cn(
                   "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-colors",
                   selectedIds.includes(event.id)
