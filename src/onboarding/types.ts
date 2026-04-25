@@ -47,7 +47,6 @@ export type PassportState = {
   auth?: AuthInfo;
   attendedEvents?: import("@/lib/api").ApiEvent[];
   createdDetourId?: number;
-  socials?: { instagram?: string; tiktok?: string };
 };
 
 export const DEFAULT_STATE: PassportState = {

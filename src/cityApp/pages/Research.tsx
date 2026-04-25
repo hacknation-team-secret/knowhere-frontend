@@ -35,6 +35,7 @@ export default function Research() {
   const [users, setUsers] = useState<ApiPublicUser[]>([]);
   const [groups, setGroups] = useState<ApiGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
+  const [userQuery, setUserQuery] = useState("");
   const [groupName, setGroupName] = useState("Weekend crew");
   const [groupDescription, setGroupDescription] = useState("A shared trip plan that balances food, culture, pace, and budget.");
   const [inviteUsername, setInviteUsername] = useState("");
@@ -56,6 +57,16 @@ export default function Research() {
   const invitableUsers = users.filter(
     (user) => !selectedGroup?.memberships.some((membership) => membership.user.id === user.id),
   );
+  const visibleUsers = users
+    .filter((user) => user.id !== auth.user?.id)
+    .filter((user) => {
+      const query = userQuery.trim().toLowerCase();
+      if (!query) return true;
+      return [user.username, user.email, user.description]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(query));
+    })
+    .slice(0, 8);
   const acceptedMemberCount = selectedGroup?.memberships.filter(
     (membership) => membership.status === "accepted",
   ).length ?? 0;
@@ -185,12 +196,17 @@ export default function Research() {
 
   const inviteUser = async () => {
     if (!selectedGroup || !inviteUsername) return;
+    await inviteUserToSelected(inviteUsername);
+  };
+
+  const inviteUserToSelected = async (username: string) => {
+    if (!selectedGroup || !username) return;
     setGroupLoading(true);
     try {
-      const group = await api.inviteToGroup(selectedGroup.id, inviteUsername);
+      const group = await api.inviteToGroup(selectedGroup.id, username);
       setGroups((prev) => prev.map((item) => item.id === group.id ? group : item));
       setInviteUsername("");
-      toast({ title: "Invite sent", description: `${inviteUsername} can now join this trip group.` });
+      toast({ title: "Invite sent", description: `${username} can now join this trip group.` });
     } catch (e) {
       toast({ title: "Invite failed", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -398,6 +414,71 @@ export default function Research() {
                 </div>
               </div>
             )}
+
+            <div className="space-y-3 rounded-2xl border border-line bg-paper p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+                    Find People
+                  </p>
+                  <p className="mt-1 text-xs text-ink-soft">
+                    Search users on Knowhere and invite them into the active trip group.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-card px-2 py-1 text-xs font-semibold text-ink-soft">
+                  {Math.max(users.length - 1, 0)} users
+                </span>
+              </div>
+
+              <input
+                value={userQuery}
+                onChange={(e) => setUserQuery(e.target.value)}
+                className="h-10 w-full rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Search username, email, taste notes"
+              />
+
+              <div className="space-y-2">
+                {visibleUsers.length > 0 ? (
+                  visibleUsers.map((user) => {
+                    const membership = selectedGroup?.memberships.find((item) => item.user.id === user.id);
+                    const canInvite = !!selectedGroup && selectedMembership?.status === "accepted" && !membership;
+                    return (
+                      <div key={user.id} className="rounded-2xl border border-line bg-card p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-ink">@{user.username}</p>
+                            {user.description && (
+                              <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft">{user.description}</p>
+                            )}
+                          </div>
+                          {canInvite ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setInviteUsername(user.username);
+                                void inviteUserToSelected(user.username);
+                              }}
+                              disabled={groupLoading}
+                              className="shrink-0 rounded-full bg-stamp px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                            >
+                              Invite
+                            </button>
+                          ) : (
+                            <span className="shrink-0 rounded-full bg-paper px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
+                              {membership?.status ?? "select group"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="rounded-xl border border-dashed border-line p-3 text-xs text-ink-soft">
+                    No matching users found.
+                  </p>
+                )}
+              </div>
+            </div>
 
             {selectedGroup && (
               <div className="rounded-2xl border border-line bg-paper-soft p-4">

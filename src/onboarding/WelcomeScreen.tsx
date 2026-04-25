@@ -5,7 +5,7 @@ import cafe from "@/assets/detour-cafe.jpg";
 import park from "@/assets/detour-park.jpg";
 import bookstore from "@/assets/detour-bookstore.jpg";
 
-export function WelcomeScreen({ onNext }: { onNext: () => void }) {
+export function WelcomeScreen({ onNext, onSignIn }: { onNext: () => void; onSignIn: () => void }) {
   return (
     <section className="grid md:grid-cols-[1.05fr_1fr] gap-10 lg:gap-16 items-center min-h-[60vh]">
       <div className="relative">
@@ -22,7 +22,7 @@ export function WelcomeScreen({ onNext }: { onNext: () => void }) {
           A passport for the cities you haven't met yet, with a copilot for the friends you bring along.
         </p>
 
-        <div className="mt-10">
+        <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <Button
             size="xl"
             onClick={onNext}
@@ -32,6 +32,19 @@ export function WelcomeScreen({ onNext }: { onNext: () => void }) {
             <span className="font-serif italic text-[17px]">Start wandering</span>
             <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
           </Button>
+          <button
+            type="button"
+            onClick={onSignIn}
+            className="group rounded-full border border-line bg-paper-soft px-5 py-3 text-left transition-all hover:-translate-y-0.5 hover:border-ocean/40 hover:shadow-[0_10px_28px_-18px_hsl(var(--ink))]"
+          >
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+              Already have a passport?
+            </span>
+            <span className="mt-0.5 flex items-center gap-1.5 font-serif text-[16px] italic text-ink">
+              Sign in
+              <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
+            </span>
+          </button>
         </div>
       </div>
 
