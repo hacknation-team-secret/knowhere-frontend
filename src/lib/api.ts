@@ -147,7 +147,8 @@ export const api = {
 
   // Events
   listEvents: () => request<ApiEvent[]>("/items"), // /items returns list per OpenAPI
-  listCities: () => request<{ id: number; name: string; description: string | null }[]>("/cities"),
+  listCities: () => 
+    request<{ id: number; name: string; description: string | null }[]>("/cities").catch(() => []),
   attendEvent: (eventId: number) =>
     request<unknown>(`/events/${eventId}/attend`, { method: "POST" }),
 
@@ -168,9 +169,9 @@ export const api = {
     request<ApiPassport>(`/users/${encodeURIComponent(username)}/passport`),
 
   chat: (message: string) =>
-    request<{ answer: string }>("/chat", {
+    request<{ answer: string }>("/research", {
       method: "POST",
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ query: message }),
       headers: { "Content-Type": "application/json" },
     }),
 
