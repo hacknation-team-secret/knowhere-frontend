@@ -3,12 +3,13 @@
 // that locally re-runs the deterministic generator with the same prompt.
 
 import { useState } from "react";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles, BookmarkPlus, Check } from "lucide-react";
 import { useApp } from "@/pages/AppShell";
 import { api } from "@/lib/api";
 import { refineDetour } from "@/lib/detours";
 import type { Detour } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface AskKnowhereProps {
   baseDetour: Detour;
@@ -24,10 +25,14 @@ const SUGGESTIONS = [
 
 export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
   const { profile, auth, requireAuth } = useApp();
+  const { toast } = useToast();
   const [text, setText] = useState("");
   const [thinking, setThinking] = useState(false);
   const [answer, setAnswer] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<number | undefined>();
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isCaptured, setIsCaptured] = useState(false);
 
   const submit = async (raw: string) => {
     const refinement = raw.trim();
@@ -36,6 +41,7 @@ export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
     setError(null);
     setAnswer(null);
     setThinking(true);
+    setIsCaptured(false);
     try {
       // Always regenerate the route locally so the map updates instantly.
       const refined = refineDetour(baseDetour, profile, refinement);
@@ -43,14 +49,38 @@ export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
 
       // If signed in, also ask the backend for a written answer.
       if (auth.user) {
-        const res = await api.research(refinement);
+        const res = await api.research(refinement, threadId);
         setAnswer(res.answer);
+        if (res.thread_id) {
+          setThreadId(res.thread_id);
+        }
       }
       setText("");
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setThinking(false);
+    }
+  };
+
+  const handleCapture = async () => {
+    if (!threadId) return;
+    setIsCapturing(true);
+    try {
+      await api.captureResearch(threadId);
+      setIsCaptured(true);
+      toast({
+        title: "Captured to Passport",
+        description: "This research session has been saved to your passport.",
+      });
+    } catch (e) {
+      toast({
+        title: "Capture failed",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -126,10 +156,38 @@ export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
       </div>
 
       {answer && (
-        <div className="mt-4 rounded-2xl border border-stamp/30 bg-stamp/5 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stamp">
-            Knowhere says
-          </p>
+        <div className="mt-4 rounded-2xl border border-stamp/30 bg-stamp/5 p-3 relative group">
+          <div className="flex justify-between items-start mb-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-stamp">
+              Knowhere says
+            </p>
+            {threadId && (
+              <button
+                onClick={handleCapture}
+                disabled={isCapturing || isCaptured}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all",
+                  isCaptured 
+                    ? "bg-green-100 text-green-700 border border-green-200"
+                    : "bg-stamp/10 text-stamp hover:bg-stamp/20 border border-stamp/20"
+                )}
+              >
+                {isCapturing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : isCaptured ? (
+                  <>
+                    <Check className="h-3 w-3" />
+                    Captured
+                  </>
+                ) : (
+                  <>
+                    <BookmarkPlus className="h-3 w-3" />
+                    Capture to Passport
+                  </>
+                )}
+              </button>
+            )}
+          </div>
           <p className="mt-1 whitespace-pre-line font-serif text-[15px] leading-relaxed text-foreground/85">
             {answer}
           </p>

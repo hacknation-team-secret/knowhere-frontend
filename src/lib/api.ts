@@ -168,17 +168,39 @@ export const api = {
   passport: (username: string) =>
     request<ApiPassport>(`/users/${encodeURIComponent(username)}/passport`),
 
-  chat: (message: string) =>
-    request<{ answer: string }>("/research", {
+  chat: (message: string, threadId?: number) =>
+    request<{ answer: string; thread_id: number }>("/research", {
       method: "POST",
-      body: JSON.stringify({ query: message }),
+      body: JSON.stringify({ query: message, thread_id: threadId }),
       headers: { "Content-Type": "application/json" },
     }),
 
-  research: (query: string) =>
-    request<{ answer: string }>("/research", {
+  research: (query: string, threadId?: number) =>
+    request<{ answer: string; thread_id: number }>("/research", {
       method: "POST",
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, thread_id: threadId }),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  createThread: (title?: string) =>
+    request<{ id: number; title: string | null; created_at: string; messages: any[] }>(
+      "/research/threads",
+      {
+        method: "POST",
+        body: JSON.stringify({ title }),
+        headers: { "Content-Type": "application/json" },
+      },
+    ),
+
+  listThreads: () =>
+    request<{ id: number; title: string | null; created_at: string; messages: any[] }[]>(
+      "/research/threads",
+    ),
+
+  captureResearch: (threadId: number, imageUrl?: string) =>
+    request<unknown>("/research/capture", {
+      method: "POST",
+      body: JSON.stringify({ thread_id: threadId, image_url: imageUrl }),
       headers: { "Content-Type": "application/json" },
     }),
 };

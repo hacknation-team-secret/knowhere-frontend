@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Send, Sparkles, User, Bot } from "lucide-react";
+import { Loader2, Send, Sparkles, User, Bot, BookmarkPlus, Check } from "lucide-react";
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
 import { cn } from "@/lib/utils";
+import { useLocation } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   role: "user" | "assistant";
@@ -18,10 +20,17 @@ const SUGGESTIONS = [
 
 export default function Research() {
   const { auth, requireAuth, passport } = useApp();
+  const { toast } = useToast();
+  const location = useLocation();
   const [text, setText] = useState("");
   const [thinking, setThinking] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [threadId, setThreadId] = useState<number | undefined>(
+    location.state?.threadId
+  );
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isCaptured, setIsCaptured] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,6 +38,15 @@ export default function Research() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, thinking]);
+
+  // If we have a threadId but no messages, we could fetch history.
+  // For now, let's at least maintain the ID for continuity.
+  useEffect(() => {
+    if (threadId && messages.length === 0) {
+      // In a real app, we'd fetch the thread history here.
+      // api.getThread(threadId).then(t => setMessages(t.messages.map(m => ({role: m.role, content: m.content}))))
+    }
+  }, [threadId]);
 
   const submit = async (raw: string) => {
     const query = raw.trim();
@@ -38,6 +56,7 @@ export default function Research() {
     setMessages((prev) => [...prev, { role: "user", content: query }]);
     setText("");
     setThinking(true);
+    setIsCaptured(false);
 
     try {
       if (!auth.user) {
@@ -48,8 +67,11 @@ export default function Research() {
         }
       }
 
-      const res = await api.chat(query);
+      const res = await api.chat(query, threadId);
       setMessages((prev) => [...prev, { role: "assistant", content: res.answer }]);
+      if (res.thread_id) {
+        setThreadId(res.thread_id);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -57,16 +79,66 @@ export default function Research() {
     }
   };
 
+  const handleCapture = async () => {
+    if (!threadId) return;
+    setIsCapturing(true);
+    try {
+      await api.captureResearch(threadId);
+      setIsCaptured(true);
+      toast({
+        title: "Captured to Passport",
+        description: "This research session has been saved to your passport.",
+      });
+    } catch (e) {
+      toast({
+        title: "Capture failed",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] max-w-3xl mx-auto">
-      <header className="mb-6">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-stamp" strokeWidth={2} />
-          <h1 className="font-serif text-3xl text-ink">Research Agent</h1>
+      <header className="mb-6 flex justify-between items-end">
+        <div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-stamp" strokeWidth={2} />
+            <h1 className="font-serif text-3xl text-ink">Research Agent</h1>
+          </div>
+          <p className="mt-2 text-ink-soft italic font-serif">
+            Insights based on your passport and collected detours.
+          </p>
         </div>
-        <p className="mt-2 text-ink-soft italic font-serif">
-          Insights based on your passport and collected detours.
-        </p>
+
+        {threadId && messages.length > 0 && (
+          <button
+            onClick={handleCapture}
+            disabled={isCapturing || isCaptured}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider transition-all",
+              isCaptured 
+                ? "bg-green-100 text-green-700 border border-green-200"
+                : "bg-stamp/10 text-stamp hover:bg-stamp/20 border border-stamp/20"
+            )}
+          >
+            {isCapturing ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : isCaptured ? (
+              <>
+                <Check className="h-4 w-4" />
+                Captured to Passport
+              </>
+            ) : (
+              <>
+                <BookmarkPlus className="h-4 w-4" />
+                Capture Session
+              </>
+            )}
+          </button>
+        )}
       </header>
 
       {/* Chat Messages */}
@@ -116,7 +188,7 @@ export default function Research() {
               "rounded-2xl p-4 text-[15px] leading-relaxed",
               m.role === "user" 
                 ? "bg-ocean-deep text-white rounded-tr-none" 
-                : "bg-card border border-line rounded-tl-none font-serif italic"
+                : "bg-card border border-line rounded-tl-none font-serif italic whitespace-pre-line"
             )}>
               {m.content}
             </div>

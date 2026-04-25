@@ -7,12 +7,16 @@ export function setAuthToken(token: string | null) {
 }
 
 export const api = {
-  async research(query: string): Promise<{ answer: string }> {
-    return mainApi.research(query);
+  async research(query: string, threadId?: number): Promise<{ answer: string; thread_id: number }> {
+    return mainApi.research(query, threadId);
   },
 
-  async chat(message: string): Promise<{ answer: string }> {
-    return mainApi.chat(message);
+  async chat(message: string, threadId?: number): Promise<{ answer: string; thread_id: number }> {
+    return mainApi.chat(message, threadId);
+  },
+
+  async captureResearch(threadId: number, imageUrl?: string) {
+    return mainApi.captureResearch(threadId, imageUrl);
   },
 
   async createDetour(name: string, eventIds: number[], description?: string) {
