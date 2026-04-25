@@ -1,24 +1,14 @@
-import { Actions } from "./Actions";
-import { Compass, Spark, Star } from "./decor";
+import { Button } from "@/components/ui/button";
+import { Star } from "./decor";
+import { ArrowRight } from "lucide-react";
 import cafe from "@/assets/detour-cafe.jpg";
 import park from "@/assets/detour-park.jpg";
 import bookstore from "@/assets/detour-bookstore.jpg";
 
-interface WelcomeProps {
-  onNext: () => void;
-  onSignIn: () => void;
-}
-
-export function WelcomeScreen({ onNext, onSignIn }: WelcomeProps) {
+export function WelcomeScreen({ onNext }: { onNext: () => void }) {
   return (
     <section className="grid md:grid-cols-[1.05fr_1fr] gap-10 lg:gap-16 items-center min-h-[60vh]">
-      {/* Left — text */}
       <div className="relative">
-        <div className="flex items-center gap-2 text-ink-soft mb-6">
-          <Compass className="size-4" />
-          <span className="text-[11px] tracking-[0.22em] uppercase">A city passport</span>
-        </div>
-
         <h1 className="font-serif text-[52px] md:text-[68px] leading-[0.98] text-ink mb-6">
           Know where
           <br />
@@ -29,52 +19,43 @@ export function WelcomeScreen({ onNext, onSignIn }: WelcomeProps) {
         </h1>
 
         <p className="text-[16px] leading-[1.55] text-ink-soft max-w-[42ch]">
-          A quiet companion that learns your taste, then opens a city one Detour at a time.
+          A passport for the cities you haven't met yet, with a copilot for the friends you bring along.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
-          <Actions
-            primary={{ label: "Start my Passport", onClick: onNext }}
-            helper={
-              <span className="inline-flex items-center gap-1.5">
-                <Spark className="size-3 text-gold" /> Two minutes · No account
-              </span>
-            }
-          />
-          <div className="hidden sm:block w-px h-8 bg-line/60 mx-2" />
-          <button
-            onClick={onSignIn}
-            className="text-[13px] tracking-[0.12em] uppercase text-ink-soft hover:text-ink font-semibold transition-colors flex flex-col items-center sm:items-start"
+        <div className="mt-10">
+          <Button
+            size="xl"
+            onClick={onNext}
+            className="group relative pr-8 shadow-[0_8px_24px_-8px_hsl(var(--ocean)/0.45)] hover:shadow-[0_12px_32px_-10px_hsl(var(--ocean)/0.55)] hover:-translate-y-0.5 transition-all duration-300"
           >
-            <span>Have a Passport?</span>
-            <span className="text-[11px] font-normal normal-case italic opacity-80">Sign in to continue</span>
-          </button>
+            <Star className="size-3.5 text-gold mr-1 -ml-1 transition-transform group-hover:rotate-12" />
+            <span className="font-serif italic text-[17px]">Start wandering</span>
+            <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" strokeWidth={1.8} />
+          </Button>
         </div>
       </div>
 
-      {/* Right — collage of 3 photos, gentle offset (whimsical, not chaotic) */}
-      <div className="relative h-[480px] hidden md:block">
+      <div className="relative hidden md:grid grid-cols-6 grid-rows-6 gap-3 h-[480px]">
         <PhotoFrame
           src={cafe}
           alt="Sunlit cafe"
           caption="a slow morning"
-          className="absolute right-0 top-0 w-[62%] aspect-[4/5]"
+          className="col-span-4 row-span-4 col-start-3 row-start-1"
         />
         <PhotoFrame
           src={park}
           alt="Tree-lined path"
           caption="a side-loop home"
-          className="absolute left-0 top-24 w-[48%] aspect-[3/4]"
+          className="col-span-3 row-span-3 col-start-1 row-start-4"
         />
         <PhotoFrame
           src={bookstore}
           alt="Bookstore"
           caption="lamp-lit corners"
-          className="absolute right-8 bottom-0 w-[42%] aspect-square"
+          className="col-span-3 row-span-2 col-start-4 row-start-5"
         />
       </div>
 
-      {/* Mobile photo */}
       <div className="md:hidden">
         <PhotoFrame
           src={cafe}
@@ -99,14 +80,12 @@ function PhotoFrame({
   className?: string;
 }) {
   return (
-    <figure className={`photo-card overflow-hidden ${className}`}>
+    <figure className={`photo-card relative overflow-hidden ${className}`}>
       <img
         src={src}
         alt={alt}
         loading="eager"
-        width={800}
-        height={1024}
-        className="w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover"
       />
       {caption && (
         <figcaption className="absolute inset-x-0 bottom-0 px-3 py-2 text-paper-soft/95 text-[11.5px] tracking-[0.16em] uppercase bg-gradient-to-t from-ink/55 via-ink/15 to-transparent">

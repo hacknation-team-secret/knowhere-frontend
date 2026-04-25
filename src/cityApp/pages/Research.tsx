@@ -307,7 +307,7 @@ export default function Research() {
           <h2 className="font-serif text-xl">Trip Groups</h2>
         </div>
         <p className="mt-2 text-sm text-ink-soft">
-          Invite users on Knowhere, then ask the agent for itineraries that combine everyone's passport.
+          Discover platform groups, invite users on Knowhere, then ask the copilot for itineraries that combine everyone's passport.
         </p>
 
         {!auth.user ? (
@@ -341,19 +341,61 @@ export default function Research() {
             </div>
 
             {groups.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
-                  Active Group
-                </label>
-                <select
-                  value={selectedGroupId ?? ""}
-                  onChange={(e) => setSelectedGroupId(Number(e.target.value) || undefined)}
-                  className="h-10 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
-                >
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>{group.name}</option>
-                  ))}
-                </select>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+                    Active Group
+                  </label>
+                  <select
+                    value={selectedGroupId ?? ""}
+                    onChange={(e) => setSelectedGroupId(Number(e.target.value) || undefined)}
+                    className="h-10 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                  >
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>{group.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+                    All Platform Groups
+                  </p>
+                  <div className="space-y-2">
+                    {groups.map((group) => {
+                      const membership = group.memberships.find((item) => item.user.id === auth.user?.id);
+                      const accepted = group.memberships.filter((item) => item.status === "accepted").length;
+                      return (
+                        <button
+                          key={group.id}
+                          type="button"
+                          onClick={() => setSelectedGroupId(group.id)}
+                          className={cn(
+                            "w-full rounded-2xl border p-3 text-left transition-colors",
+                            selectedGroupId === group.id
+                              ? "border-ocean/40 bg-ocean/10"
+                              : "border-line bg-paper hover:border-ocean/30",
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold text-ink">{group.name}</p>
+                              {group.description && (
+                                <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft">{group.description}</p>
+                              )}
+                            </div>
+                            <span className="shrink-0 rounded-full bg-card px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
+                              {membership?.status ?? "view"}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-xs text-ink-soft">
+                            {accepted} accepted member{accepted === 1 ? "" : "s"}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -558,10 +600,10 @@ export default function Research() {
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-stamp" strokeWidth={2} />
-            <h1 className="font-serif text-3xl text-ink">Research Agent</h1>
+            <h1 className="font-serif text-3xl text-ink">Trip Copilot</h1>
           </div>
           <p className="mt-2 text-ink-soft italic font-serif">
-            Insights based on your passport and collected detours.
+            Plan with your passport, your groups, votes, and shared budgets.
           </p>
         </div>
 

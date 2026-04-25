@@ -39,13 +39,15 @@ export type AuthInfo = {
 
 export type PassportState = {
   step: number;
+  name?: string;
   profile?: ParsedProfile;
   picks: QuickPicks;
   trip: Trip;
   usedQuickPicks: boolean;
   auth?: AuthInfo;
-  attendedEvents?: import("@/lib/knowhereApi").ApiEvent[];
+  attendedEvents?: import("@/lib/api").ApiEvent[];
   createdDetourId?: number;
+  socials?: { instagram?: string; tiktok?: string };
 };
 
 export const DEFAULT_STATE: PassportState = {

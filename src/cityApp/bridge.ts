@@ -24,6 +24,11 @@ export function readBridge(): Bridge {
   return bridge;
 }
 
+export function clearBridge() {
+  bridge.profile = null;
+  bridge.auth = null;
+}
+
 // ─── Mapping helpers ────────────────────────────────────────────────────────
 
 const VIBE_VOCAB: Vibe[] = ["local", "iconic", "quiet", "social", "scenic", "family", "hidden gem"];

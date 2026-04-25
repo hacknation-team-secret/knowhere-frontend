@@ -206,7 +206,7 @@ export default function CityPulse() {
 
         <div className="mt-5 flex gap-2">
           <button
-            onClick={() => navigate(`/detour/${primaryDetour.id}`, { state: { detour: primaryDetour } })}
+            onClick={() => navigate(`/app/detour/${primaryDetour.id}`, { state: { detour: primaryDetour } })}
             className="flex-1 rounded-full border border-border bg-card py-3 text-sm font-semibold tracking-wide hover:bg-secondary"
           >
             View route
@@ -224,7 +224,7 @@ export default function CityPulse() {
                   /* surface later via toast if needed */
                 }
               }
-              navigate(`/detour/${primaryDetour.id}`, { state: { detour: primaryDetour } });
+              navigate(`/app/detour/${primaryDetour.id}`, { state: { detour: primaryDetour } });
             }}
             className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-stamp py-3 text-sm font-semibold tracking-wide text-stamp-foreground hover:opacity-90"
           >
@@ -240,10 +240,10 @@ export default function CityPulse() {
       {/* Ask Knowhere */}
       <AskKnowhere
         baseDetour={primaryDetour}
-        onResult={(d) => navigate(`/detour/${d.id}`, { state: { detour: d } })}
+        onResult={(d) => navigate(`/app/detour/${d.id}`, { state: { detour: d } })}
       />
 
-      {/* Research Agent CTA */}
+      {/* Trip Copilot CTA */}
       <Link
         to="/app/research"
         className="flex items-center justify-between rounded-3xl border border-line bg-paper-soft p-6 shadow-sm hover:border-stamp/40 transition-colors group"
@@ -253,8 +253,8 @@ export default function CityPulse() {
             <Bot className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-serif text-lg text-ink">Chat with the Research Agent</h3>
-            <p className="text-sm text-ink-soft">Get deep insights based on your passport history.</p>
+             <h3 className="font-serif text-lg text-ink">Plan with the Trip Copilot</h3>
+             <p className="text-sm text-ink-soft">Coordinate groups, shared favorites, budgets, and next stops.</p>
           </div>
         </div>
         <Sparkles className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />

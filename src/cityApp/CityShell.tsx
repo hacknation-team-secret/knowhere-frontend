@@ -7,13 +7,21 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Compass, MapPin, Route as RouteIcon, User, Sparkles, Bot } from "lucide-react";
+import { Bot, ChevronDown, Compass, LogOut, MapPin, RotateCcw, Route as RouteIcon, Sparkles, User } from "lucide-react";
 import type {
   Detour,
   PassportEntry,
   Profile,
 } from "@/cityApp/lib/types";
 import { setAuthToken } from "@/cityApp/lib/apiAdapter";
+import { clearBridge } from "@/cityApp/bridge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface CityAuth {
   user: { username: string; email?: string | null; id: number } | null;
@@ -158,7 +166,16 @@ export function CityShell({
 }
 
 function TopNav() {
-  const { auth } = useApp();
+  const { auth, setAuth } = useApp();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    clearBridge();
+    setAuthToken(null);
+    setAuth({ user: null, token: null, signOut: () => {} });
+    navigate("/", { replace: true });
+  };
+
   return (
     <header className="border-b border-line/60 bg-paper-soft/70 backdrop-blur">
       <div className="mx-auto flex max-w-[1100px] items-center justify-between px-6 py-4">
@@ -177,7 +194,7 @@ function TopNav() {
             Explore
           </NavItem>
           <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-            Research
+            Copilot
           </NavItem>
           <NavItem to="/app/detour" icon={<RouteIcon className="h-3.5 w-3.5" strokeWidth={1.75} />}>
             Detour
@@ -186,14 +203,39 @@ function TopNav() {
 
         <div className="flex items-center gap-2">
           {auth.user ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-line/70 bg-card px-3 py-1.5 text-[12px] text-ink">
-              <User className="h-3.5 w-3.5 text-ink-soft" strokeWidth={1.75} />
-              <span className="font-medium">@{auth.user.username}</span>
-            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-line/70 bg-card px-3 py-1.5 text-[12px] text-ink hover:bg-card/70 transition-colors"
+                  aria-label="Account menu"
+                >
+                  <User className="h-3.5 w-3.5 text-ink-soft" strokeWidth={1.75} />
+                  <span className="font-medium">@{auth.user.username}</span>
+                  <ChevronDown className="h-3 w-3 text-ink-soft" strokeWidth={1.75} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                  <RotateCcw className="mr-2 h-3.5 w-3.5" strokeWidth={1.75} />
+                  Restart onboarding
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-coral focus:text-coral">
+                  <LogOut className="mr-2 h-3.5 w-3.5" strokeWidth={1.75} />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line/70 px-3 py-1.5 text-[11px] tracking-[0.18em] uppercase text-ink-soft">
-              Guest
-            </span>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line/70 px-3 py-1.5 text-[11px] tracking-[0.18em] uppercase text-ink-soft hover:text-ink hover:border-line transition-colors"
+            >
+              <RotateCcw className="h-3 w-3" strokeWidth={1.75} />
+              Restart
+            </button>
           )}
         </div>
       </div>
@@ -206,7 +248,7 @@ function TopNav() {
           Explore
         </NavItem>
         <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          Research
+          Copilot
         </NavItem>
         <NavItem to="/app/detour" icon={<RouteIcon className="h-3.5 w-3.5" strokeWidth={1.75} />}>
           Detour
