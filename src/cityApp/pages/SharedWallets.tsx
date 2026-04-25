@@ -44,12 +44,12 @@ export default function SharedWallets() {
   const [saving, setSaving] = useState(false);
 
   const [walletName, setWalletName] = useState("Barcelona Trip Wallet");
-  const [walletLimit, setWalletLimit] = useState("60000");
+  const [walletLimit, setWalletLimit] = useState("600");
   const [walletThreshold, setWalletThreshold] = useState("20");
   const [joinCode, setJoinCode] = useState("");
-  const [fundAmount, setFundAmount] = useState("12000");
+  const [fundAmount, setFundAmount] = useState("120");
   const [fundMethod, setFundMethod] = useState<PaymentMethod>("card");
-  const [spendAmount, setSpendAmount] = useState("4800");
+  const [spendAmount, setSpendAmount] = useState("48");
   const [spendMerchant, setSpendMerchant] = useState("Tapas dinner");
   const [spendCategory, setSpendCategory] = useState("food");
   const [spendDescription, setSpendDescription] = useState("Shared meal for the group");
@@ -96,7 +96,7 @@ export default function SharedWallets() {
     if (!selectedWallet) return;
     setWalletLimit(
       selectedWallet.spending_limit_cents != null
-        ? String(selectedWallet.spending_limit_cents)
+        ? formatMoneyInput(selectedWallet.spending_limit_cents)
         : "",
     );
     setWalletThreshold(String(selectedWallet.alert_threshold_percent));
@@ -114,10 +114,11 @@ export default function SharedWallets() {
   const handleCreateWallet = async () => {
     setSaving(true);
     try {
+      const limitCents = parseMoneyToCents(walletLimit);
       const wallet = await api.createSharedWallet({
         name: walletName.trim(),
         currency: "USD",
-        spending_limit_cents: walletLimit ? Number(walletLimit) : null,
+        spending_limit_cents: limitCents,
         alert_threshold_percent: walletThreshold ? Number(walletThreshold) : 20,
       });
       updateWalletInState(wallet);
@@ -149,7 +150,16 @@ export default function SharedWallets() {
     if (!selectedWallet) return;
     setSaving(true);
     const previous = selectedWallet;
-    const amount = Number(fundAmount);
+    const amount = parseMoneyToCents(fundAmount);
+    if (!amount || amount <= 0) {
+      setSaving(false);
+      toast({
+        title: "Enter an amount",
+        description: "Add a positive dollar amount to preload funds.",
+        variant: "destructive",
+      });
+      return;
+    }
     updateWalletInState({
       ...selectedWallet,
       total_balance_cents: selectedWallet.total_balance_cents + amount,
@@ -176,7 +186,16 @@ export default function SharedWallets() {
     if (!selectedWallet) return;
     setSaving(true);
     const previous = selectedWallet;
-    const amount = Number(spendAmount);
+    const amount = parseMoneyToCents(spendAmount);
+    if (!amount || amount <= 0) {
+      setSaving(false);
+      toast({
+        title: "Enter an amount",
+        description: "Choose a positive dollar amount before paying.",
+        variant: "destructive",
+      });
+      return;
+    }
     updateWalletInState({
       ...selectedWallet,
       total_balance_cents: selectedWallet.total_balance_cents - amount,
@@ -203,8 +222,9 @@ export default function SharedWallets() {
   const handleSaveControls = async () => {
     if (!selectedWallet) return;
     try {
+      const limitCents = parseMoneyToCents(walletLimit);
       const wallet = await api.updateSharedWallet(selectedWallet.id, {
-        spending_limit_cents: walletLimit ? Number(walletLimit) : null,
+        spending_limit_cents: limitCents,
         alert_threshold_percent: walletThreshold ? Number(walletThreshold) : null,
       });
       updateWalletInState(wallet);
@@ -356,12 +376,12 @@ export default function SharedWallets() {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Remaining after next spend</p>
                     <p className="mt-1 font-serif text-2xl text-ink">
                       {formatCurrency(
-                        selectedWallet.total_balance_cents - Number(spendAmount || 0),
+                        selectedWallet.total_balance_cents - (parseMoneyToCents(spendAmount) ?? 0),
                         selectedWallet.currency,
                       )}
                     </p>
                   </div>
-                  {selectedWallet.total_balance_cents - Number(spendAmount || 0) < 0 ? (
+                  {selectedWallet.total_balance_cents - (parseMoneyToCents(spendAmount) ?? 0) < 0 ? (
                     <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive">
                       Insufficient funds
                     </span>
@@ -401,7 +421,7 @@ export default function SharedWallets() {
                 <h2 className="font-serif text-2xl text-ink">Budget controls</h2>
               </div>
               <div className="mt-4 grid gap-3">
-                <Field label="Spending limit (cents)" value={walletLimit} onChange={setWalletLimit} inputMode="numeric" />
+                <Field label="Spending limit" value={walletLimit} onChange={setWalletLimit} inputMode="decimal" placeholder="600.00" />
                 <Field label="Alert threshold (%)" value={walletThreshold} onChange={setWalletThreshold} inputMode="numeric" />
                 <Button variant="outline" onClick={handleSaveControls}>
                   Save controls
@@ -431,7 +451,7 @@ export default function SharedWallets() {
                             {transaction.merchant || transaction.description || transaction.type}
                           </p>
                           <p className="mt-1 text-xs text-ink-soft">
-                            {transaction.type} by @{actor || "member"} · {formatDate(transaction.created_at)}
+                            {transaction.type} by @{actor || "member"} Â· {formatDate(transaction.created_at)}
                           </p>
                         </div>
                         <span
@@ -446,7 +466,7 @@ export default function SharedWallets() {
                       </div>
                       {(transaction.category || transaction.description) ? (
                         <p className="mt-2 text-xs text-ink-soft">
-                          {[transaction.category, transaction.description].filter(Boolean).join(" · ")}
+                          {[transaction.category, transaction.description].filter(Boolean).join(" Â· ")}
                         </p>
                       ) : null}
                     </div>
@@ -475,7 +495,7 @@ export default function SharedWallets() {
         onConfirm={handleCreateWallet}
       >
         <Field label="Wallet name" value={walletName} onChange={setWalletName} />
-        <Field label="Spending limit (cents)" value={walletLimit} onChange={setWalletLimit} inputMode="numeric" />
+        <Field label="Spending limit" value={walletLimit} onChange={setWalletLimit} inputMode="decimal" placeholder="600.00" />
         <Field label="Alert threshold (%)" value={walletThreshold} onChange={setWalletThreshold} inputMode="numeric" />
       </WalletDialog>
 
@@ -500,7 +520,7 @@ export default function SharedWallets() {
         confirmLabel="Confirm funding"
         onConfirm={handleFundWallet}
       >
-        <Field label="Amount (cents)" value={fundAmount} onChange={setFundAmount} inputMode="numeric" />
+        <Field label="Amount" value={fundAmount} onChange={setFundAmount} inputMode="decimal" placeholder="120.00" />
         <ChoiceField
           label="Funding source"
           value={fundMethod}
@@ -523,7 +543,7 @@ export default function SharedWallets() {
         onConfirm={handleSpendWallet}
       >
         <Field label="Merchant" value={spendMerchant} onChange={setSpendMerchant} />
-        <Field label="Amount (cents)" value={spendAmount} onChange={setSpendAmount} inputMode="numeric" />
+        <Field label="Amount" value={spendAmount} onChange={setSpendAmount} inputMode="decimal" placeholder="48.00" />
         <Field label="Category" value={spendCategory} onChange={setSpendCategory} />
         <Field label="Description" value={spendDescription} onChange={setSpendDescription} />
         {selectedWallet ? (
@@ -531,7 +551,7 @@ export default function SharedWallets() {
             Remaining balance after payment:{" "}
             <span className="font-semibold text-ink">
               {formatCurrency(
-                selectedWallet.total_balance_cents - Number(spendAmount || 0),
+                selectedWallet.total_balance_cents - (parseMoneyToCents(spendAmount) ?? 0),
                 selectedWallet.currency,
               )}
             </span>
@@ -593,12 +613,14 @@ function Field({
   onChange,
   inputMode,
   autoCapitalize,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   autoCapitalize?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="block">
@@ -608,6 +630,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         inputMode={inputMode}
         autoCapitalize={autoCapitalize}
+        placeholder={placeholder}
         className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm text-ink focus:border-stamp focus:outline-none"
       />
     </label>
@@ -694,4 +717,17 @@ function formatDate(value: string) {
     minute: "2-digit",
   }).format(new Date(value));
 }
+
+function parseMoneyToCents(value: string) {
+  const normalized = value.replace(/[^0-9.]/g, "").trim();
+  if (!normalized) return null;
+  const amount = Number(normalized);
+  if (!Number.isFinite(amount)) return null;
+  return Math.round(amount * 100);
+}
+
+function formatMoneyInput(amountCents: number) {
+  return (amountCents / 100).toFixed(2).replace(/\.00$/, "");
+}
+
 
