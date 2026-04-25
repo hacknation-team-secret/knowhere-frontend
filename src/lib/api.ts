@@ -173,6 +173,31 @@ export interface ApiResearchThread {
   messages: ApiResearchMessage[];
 }
 
+export interface ApiInstagramProfileData {
+  username?: string | null;
+  display_name?: string | null;
+  bio?: string | null;
+  post_count?: number | null;
+  follower_count?: number | null;
+  following_count?: number | null;
+  external_url?: string | null;
+  profile_image_url?: string | null;
+}
+
+export interface ApiResearchExtractResponse {
+  url: string;
+  platform: string;
+  extract_depth: "basic" | "advanced";
+  raw_content?: string | null;
+  images: string[];
+  favicon?: string | null;
+  profile?: ApiInstagramProfileData | null;
+  failed: boolean;
+  error?: string | null;
+  tavily_request_id?: string | null;
+  tavily_response_time?: number | null;
+}
+
 // ─── Endpoints ────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -313,6 +338,23 @@ export const api = {
     request<unknown>("/research/capture", {
       method: "POST",
       body: JSON.stringify({ thread_id: threadId, image_url: imageUrl }),
+      headers: { "Content-Type": "application/json" },
+    }),
+
+  extractResearch: (
+    url: string,
+    query?: string,
+    extractDepth: "basic" | "advanced" = "advanced",
+    includeImages = true,
+  ) =>
+    request<ApiResearchExtractResponse>("/research/extract", {
+      method: "POST",
+      body: JSON.stringify({
+        url,
+        query,
+        extract_depth: extractDepth,
+        include_images: includeImages,
+      }),
       headers: { "Content-Type": "application/json" },
     }),
 };

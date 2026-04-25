@@ -70,6 +70,15 @@ export const api = {
     return mainApi.captureResearch(threadId, imageUrl);
   },
 
+  async extractResearch(
+    url: string,
+    query?: string,
+    extractDepth: "basic" | "advanced" = "advanced",
+    includeImages = true,
+  ) {
+    return mainApi.extractResearch(url, query, extractDepth, includeImages);
+  },
+
   async createDetour(name: string, eventIds: number[], description?: string) {
     return mainApi.createDetour(name, eventIds, description);
   },
