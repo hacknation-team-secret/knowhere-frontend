@@ -18,7 +18,7 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup">("signup");
 
   const submit = async () => {
     if (!username.trim() || password.length < 4) {
