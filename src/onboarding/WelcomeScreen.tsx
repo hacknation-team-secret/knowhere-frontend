@@ -4,7 +4,12 @@ import cafe from "@/assets/detour-cafe.jpg";
 import park from "@/assets/detour-park.jpg";
 import bookstore from "@/assets/detour-bookstore.jpg";
 
-export function WelcomeScreen({ onNext }: { onNext: () => void }) {
+interface WelcomeProps {
+  onNext: () => void;
+  onSignIn: () => void;
+}
+
+export function WelcomeScreen({ onNext, onSignIn }: WelcomeProps) {
   return (
     <section className="grid md:grid-cols-[1.05fr_1fr] gap-10 lg:gap-16 items-center min-h-[60vh]">
       {/* Left — text */}
@@ -27,14 +32,24 @@ export function WelcomeScreen({ onNext }: { onNext: () => void }) {
           A quiet companion that learns your taste, then opens a city one Detour at a time.
         </p>
 
-        <Actions
-          primary={{ label: "Start my Passport", onClick: onNext }}
-          helper={
-            <span className="inline-flex items-center gap-1.5">
-              <Spark className="size-3 text-gold" /> Two minutes · No account
-            </span>
-          }
-        />
+        <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
+          <Actions
+            primary={{ label: "Start my Passport", onClick: onNext }}
+            helper={
+              <span className="inline-flex items-center gap-1.5">
+                <Spark className="size-3 text-gold" /> Two minutes · No account
+              </span>
+            }
+          />
+          <div className="hidden sm:block w-px h-8 bg-line/60 mx-2" />
+          <button
+            onClick={onSignIn}
+            className="text-[13px] tracking-[0.12em] uppercase text-ink-soft hover:text-ink font-semibold transition-colors flex flex-col items-center sm:items-start"
+          >
+            <span>Have a Passport?</span>
+            <span className="text-[11px] font-normal normal-case italic opacity-80">Sign in to continue</span>
+          </button>
+        </div>
       </div>
 
       {/* Right — collage of 3 photos, gentle offset (whimsical, not chaotic) */}

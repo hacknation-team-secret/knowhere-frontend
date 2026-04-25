@@ -11,8 +11,8 @@ import { PassportPreviewScreen } from "./PassportPreviewScreen";
 import { DEFAULT_STATE, type PassportState, type AuthInfo } from "./types";
 import { Button } from "@/components/ui/button";
 import { Star } from "./decor";
-import { api } from "@/lib/api";
-import { buildDescriptionFromState } from "./prompt";
+import { api, ApiError } from "@/lib/api";
+import { buildDescriptionFromState, parseProfile } from "./prompt";
 import { buildProfileFromState, setBridge } from "@/cityApp/bridge";
 
 type Screen =
@@ -58,12 +58,23 @@ export function OnboardingFlow() {
   const wide = screen === "welcome" || screen === "preview";
 
   const handleAuthed = async (auth: AuthInfo, current: PassportState) => {
-    // Persist a Knowhere description on the user account, fire-and-forget.
-    const description = buildDescriptionFromState(current);
-    if (description) {
-      api.updateDescription(description).catch(() => {});
+    // If the user already has a description, use it to populate the profile.
+    try {
+      const user = await api.me();
+      if (user.description && user.description.includes("KNOWHERE PASSPORT")) {
+        const profile = parseProfile(user.description);
+        setState((s) => ({ ...s, profile, auth }));
+      } else {
+        // Persist a Knowhere description on the user account, fire-and-forget.
+        const description = buildDescriptionFromState(current);
+        if (description) {
+          api.updateDescription(description).catch(() => {});
+        }
+        setState((s) => ({ ...s, auth }));
+      }
+    } catch (e) {
+      setState((s) => ({ ...s, auth }));
     }
-    setState((s) => ({ ...s, auth }));
     goTo("preview");
   };
 
@@ -128,6 +139,10 @@ export function OnboardingFlow() {
             setPath("profile");
             goTo("prompt");
           }}
+          onSignIn={() => {
+            setPath("profile");
+            goTo("auth");
+          }}
         />
       )}
 
@@ -172,6 +187,7 @@ export function OnboardingFlow() {
             };
             handleAuthed(auth, state);
           }}
+          onSkip={() => goTo("preview")}
         />
       )}
 
