@@ -5,32 +5,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 will-change-transform hover:-translate-y-0.5 active:translate-y-0 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-ocean text-paper-soft hover:bg-ocean/92 rounded-full font-medium",
+          "rounded-full border border-white/45 bg-[linear-gradient(135deg,hsl(var(--ocean))_0%,hsl(var(--harbor))_42%,hsl(var(--gold))_100%)] text-paper-soft font-medium shadow-[0_12px_30px_-14px_hsl(var(--ocean)/0.7)] hover:brightness-[1.04] hover:shadow-[0_18px_36px_-16px_hsl(var(--harbor)/0.72)]",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full",
+          "rounded-full border border-white/30 bg-[linear-gradient(135deg,hsl(var(--destructive))_0%,hsl(var(--coral))_100%)] text-destructive-foreground shadow-[0_12px_30px_-16px_hsl(var(--destructive)/0.65)] hover:brightness-[1.04]",
         outline:
-          "bg-paper-soft border border-line text-ink hover:bg-card rounded-full font-medium",
+          "rounded-full border border-white/60 bg-[linear-gradient(135deg,hsl(var(--paper-soft))_0%,hsl(var(--primary-soft)/0.72)_46%,hsl(var(--accent-soft)/0.92)_100%)] text-ink font-medium shadow-[0_10px_26px_-18px_hsl(var(--harbor)/0.55)] hover:border-white/75 hover:shadow-[0_16px_30px_-18px_hsl(var(--gold)/0.65)]",
         secondary:
-          "bg-paper-soft text-ink border border-line hover:bg-card rounded-full font-medium",
+          "rounded-full border border-white/55 bg-[linear-gradient(135deg,hsl(var(--paper-soft))_0%,hsl(var(--secondary-soft)/0.82)_46%,hsl(var(--accent-soft)/0.82)_100%)] text-ink font-medium shadow-[0_10px_26px_-18px_hsl(var(--moss)/0.42)] hover:brightness-[1.03]",
         ghost:
-          "hover:bg-card text-ink rounded-full",
+          "rounded-full border border-white/35 bg-[linear-gradient(135deg,hsl(var(--paper-soft)/0.7)_0%,hsl(var(--primary-soft)/0.42)_48%,hsl(var(--accent-soft)/0.58)_100%)] text-ink shadow-[0_10px_22px_-18px_hsl(var(--harbor)/0.45)] hover:brightness-[1.04]",
         link:
           "text-ocean underline-offset-4 hover:underline",
         passport:
-          "bg-ocean text-paper-soft hover:bg-ocean/92 rounded-full font-medium",
+          "rounded-full border border-white/45 bg-[linear-gradient(135deg,hsl(var(--ocean-deep))_0%,hsl(var(--ocean))_30%,hsl(var(--harbor))_68%,hsl(var(--gold))_100%)] text-paper-soft font-medium shadow-[0_14px_34px_-16px_hsl(var(--ocean)/0.72)] hover:brightness-[1.05]",
         coral:
-          "bg-coral text-paper-soft hover:bg-coral/92 rounded-full font-medium",
+          "rounded-full border border-white/40 bg-[linear-gradient(135deg,hsl(var(--coral))_0%,hsl(var(--ruby))_55%,hsl(var(--gold))_100%)] text-paper-soft font-medium shadow-[0_12px_30px_-16px_hsl(var(--coral)/0.72)] hover:brightness-[1.04]",
         gold:
-          "bg-gold text-ink hover:bg-gold/92 rounded-full font-medium",
+          "rounded-full border border-white/50 bg-[linear-gradient(135deg,hsl(var(--gold))_0%,hsl(var(--paper-soft))_40%,hsl(var(--harbor))_100%)] text-ink font-medium shadow-[0_12px_28px_-16px_hsl(var(--gold)/0.66)] hover:brightness-[1.04]",
         stamp:
-          "bg-coral text-paper-soft hover:bg-coral/92 rounded-full font-medium",
+          "rounded-full border border-white/40 bg-[linear-gradient(135deg,hsl(var(--coral))_0%,hsl(var(--ruby))_52%,hsl(var(--gold))_100%)] text-paper-soft font-medium shadow-[0_12px_30px_-16px_hsl(var(--coral)/0.72)] hover:brightness-[1.04]",
         ghost_ink:
-          "bg-transparent text-ink-soft hover:text-ink",
+          "rounded-full border border-white/30 bg-[linear-gradient(135deg,hsl(var(--paper-soft)/0.35)_0%,hsl(var(--primary-soft)/0.22)_50%,hsl(var(--accent-soft)/0.32)_100%)] text-ink-soft hover:text-ink shadow-[0_8px_20px_-18px_hsl(var(--harbor)/0.38)]",
       },
       size: {
         default: "h-10 px-5",

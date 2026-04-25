@@ -90,6 +90,60 @@
     letter-spacing: 0; /* brand: no negative tracking */
     font-weight: 500;
   }
+
+  button {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    box-shadow:
+      0 10px 24px -18px hsl(var(--harbor) / 0.55),
+      inset 0 1px 0 hsl(0 0% 100% / 0.65);
+  }
+
+  button::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at 18% 22%, hsl(var(--paper-soft) / 0.72), transparent 28%),
+      radial-gradient(circle at 82% 18%, hsl(var(--gold) / 0.28), transparent 24%),
+      linear-gradient(135deg, hsl(var(--primary-soft) / 0.22) 0%, hsl(var(--accent-soft) / 0.18) 45%, hsl(var(--secondary-soft) / 0.16) 100%);
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: -2;
+  }
+
+  button::after {
+    content: "";
+    position: absolute;
+    inset: -55%;
+    border-radius: inherit;
+    background: linear-gradient(
+      115deg,
+      transparent 22%,
+      hsl(var(--paper-soft) / 0.08) 34%,
+      hsl(var(--paper-soft) / 0.62) 43%,
+      hsl(var(--harbor) / 0.22) 48%,
+      hsl(var(--accent-soft) / 0.36) 54%,
+      transparent 68%
+    );
+    opacity: 0.85;
+    pointer-events: none;
+    transform: translateX(-24%) rotate(10deg);
+    transition: transform 450ms ease, opacity 300ms ease;
+    z-index: -1;
+  }
+
+  button:hover::after {
+    transform: translateX(24%) rotate(10deg);
+    opacity: 1;
+  }
+
+  button:disabled::after,
+  button:disabled::before {
+    opacity: 0.45;
+  }
 }
 
 @layer components {
