@@ -7,7 +7,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Bot, ChevronDown, Compass, LogOut, MapPin, RotateCcw, Route as RouteIcon, User, Wallet } from "lucide-react";
+import { Bot, ChevronDown, Compass, LogOut, MapPin, RotateCcw, Route as RouteIcon, User, Users, Wallet } from "lucide-react";
 import type {
   Detour,
   PassportEntry,
@@ -193,6 +193,9 @@ function TopNav() {
           <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
             Copilot
           </NavItem>
+          <NavItem to="/app/groups" icon={<Users className="h-3.5 w-3.5" strokeWidth={1.75} />}>
+            Groups
+          </NavItem>
           <NavItem to="/app/wallets/shared" icon={<Wallet className="h-3.5 w-3.5" strokeWidth={1.75} />}>
             Wallets
           </NavItem>
@@ -246,6 +249,9 @@ function TopNav() {
         </NavItem>
         <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
           Copilot
+        </NavItem>
+        <NavItem to="/app/groups" icon={<Users className="h-3.5 w-3.5" strokeWidth={1.75} />}>
+          Groups
         </NavItem>
         <NavItem to="/app/wallets/shared" icon={<Wallet className="h-3.5 w-3.5" strokeWidth={1.75} />}>
           Wallets
