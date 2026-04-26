@@ -6,8 +6,8 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Bot, ChevronDown, Compass, LogOut, MapPin, RotateCcw, Route as RouteIcon, User, Users, Wallet } from "lucide-react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ChevronDown, Compass, LogOut, RotateCcw, User } from "lucide-react";
 import type {
   Detour,
   PassportEntry,
@@ -181,28 +181,8 @@ function TopNav() {
       <div className="mx-auto flex max-w-[1100px] items-center justify-between px-6 py-4">
         <Link to="/app" className="flex items-baseline gap-3">
           <span className="font-serif text-[22px] text-ink">Knowhere</span>
-          <span className="text-[10px] uppercase tracking-[0.28em] text-ink-soft">
-            Boston
-          </span>
+          <span className="text-[10px] uppercase tracking-[0.28em] text-ink-soft">Boston</span>
         </Link>
-
-        <nav className="hidden items-center gap-1 md:flex">
-          <NavItem to="/app" end icon={<MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-            Pulse
-          </NavItem>
-          <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-            City Guide
-          </NavItem>
-          <NavItem to="/app/groups" icon={<Users className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-            Groups
-          </NavItem>
-          <NavItem to="/app/wallets/shared" icon={<Wallet className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-            Wallets
-          </NavItem>
-          <NavItem to="/app/detour" icon={<RouteIcon className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-            Detour
-          </NavItem>
-        </nav>
 
         <div className="flex items-center gap-2">
           {auth.user ? (
@@ -224,7 +204,10 @@ function TopNav() {
                   Restart onboarding
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-coral focus:text-coral">
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer text-coral focus:text-coral"
+                >
                   <LogOut className="mr-2 h-3.5 w-3.5" strokeWidth={1.75} />
                   Sign out
                 </DropdownMenuItem>
@@ -234,7 +217,7 @@ function TopNav() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line/70 px-3 py-1.5 text-[11px] tracking-[0.18em] uppercase text-ink-soft hover:text-ink hover:border-line transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line/70 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-ink-soft hover:border-line hover:text-ink transition-colors"
             >
               <RotateCcw className="h-3 w-3" strokeWidth={1.75} />
               Restart
@@ -242,54 +225,7 @@ function TopNav() {
           )}
         </div>
       </div>
-      {/* Mobile nav row */}
-      <nav className="flex justify-center gap-1 border-t border-line/40 pb-2 pt-2 md:hidden">
-        <NavItem to="/app" end icon={<MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          Pulse
-        </NavItem>
-        <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          City Guide
-        </NavItem>
-        <NavItem to="/app/groups" icon={<Users className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          Groups
-        </NavItem>
-        <NavItem to="/app/wallets/shared" icon={<Wallet className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          Wallets
-        </NavItem>
-        <NavItem to="/app/detour" icon={<RouteIcon className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          Detour
-        </NavItem>
-      </nav>
     </header>
-  );
-}
-
-function NavItem({
-  to,
-  end,
-  icon,
-  children,
-}: {
-  to: string;
-  end?: boolean;
-  icon: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <NavLink
-      to={to}
-      end={end}
-      className={({ isActive }) =>
-        `inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] tracking-tight transition-colors ${
-          isActive
-            ? "bg-[hsl(var(--ocean)/0.10)] text-ocean-deep"
-            : "text-ink-soft hover:text-ink"
-        }`
-      }
-    >
-      {icon}
-      {children}
-    </NavLink>
   );
 }
 

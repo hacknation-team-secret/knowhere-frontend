@@ -188,7 +188,7 @@ export function OnboardingFlow() {
       {screen === "preview" && (
         <PassportPreviewScreen
           state={state}
-          onEnter={() => enterApp("/app/groups")}
+          onEnter={() => enterApp("/app")}
         />
       )}
     </Shell>

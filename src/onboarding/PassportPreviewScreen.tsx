@@ -4,59 +4,43 @@ import { Stamp } from "./Stamp";
 import { Actions } from "./Actions";
 import { Compass, Spark, Wave } from "./decor";
 import type { PassportState } from "./types";
-import { api, type ApiEvent } from "@/lib/api";
 
 interface Props {
   state: PassportState;
   onEnter: () => void;
 }
 
-const STAMP_TONES = ["coral", "ocean", "moss", "gold"] as const;
-
 export function PassportPreviewScreen({ state, onEnter }: Props) {
   const [stampIn, setStampIn] = useState(false);
-  const [attended, setAttended] = useState<ApiEvent[]>([]);
+
   useEffect(() => {
     const t = setTimeout(() => setStampIn(true), 250);
     return () => clearTimeout(t);
   }, []);
 
-  // Pull live passport data from the API once we have a signed-in user.
-  useEffect(() => {
-    if (!state.auth) return;
-    let cancelled = false;
-    api
-      .passport(state.auth.username)
-      .then((p) => {
-        if (!cancelled) setAttended(p.attended_events ?? []);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [state.auth]);
+  const styleSummary =
+    state.profile?.travelStyle ||
+    quickPicksSummary(state) ||
+    "Still finding your shape.";
 
-  const styleSummary = buildPassportMood(state);
-  const whimsyLine = buildWhimsyLine(state);
-  const chips = buildPassportBadges(state);
-  const stampCount = attended.length;
+  const chips = buildContextChips(state);
   const visualWords = buildVisualWords(state);
   const displayName = state.name || state.auth?.username || "Traveler";
   const palette = useMemo(() => paletteFromState(state), [state]);
 
   return (
     <section>
-      <div className="text-center mb-10">
-        <p className="text-[11px] tracking-[0.22em] uppercase text-ink-soft mb-3">
+      <div className="mb-10 text-center">
+        <p className="mb-3 text-[11px] uppercase tracking-[0.22em] text-ink-soft">
           Your Passport
         </p>
-        <h1 className="font-serif text-[40px] md:text-[52px] leading-[1.02] text-ink">
+        <h1 className="font-serif text-[40px] leading-[1.02] text-ink md:text-[52px]">
           Stamped & ready.
         </h1>
         <Wave className="mx-auto mt-4 w-20 text-coral/60" />
       </div>
 
-      <article className="paper-card-lift overflow-hidden mb-12">
+      <article className="paper-card-lift mb-12 overflow-hidden">
         <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
           <div className="relative overflow-hidden border-b border-line/70 lg:border-b-0 lg:border-r">
             <div
@@ -76,13 +60,13 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
               <Spark className="size-4 -rotate-6" />
             </div>
 
-            <div className="relative min-h-[340px] p-7 md:p-8 flex flex-col justify-between">
+            <div className="relative flex min-h-[340px] flex-col justify-between p-7 md:p-8">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  <div className="text-[10.5px] tracking-[0.22em] uppercase text-white/78 mb-2">
-                    Knowhere · Passport image
+                  <div className="mb-2 text-[10.5px] uppercase tracking-[0.22em] text-white/78">
+                    Knowhere · Passport
                   </div>
-                  <div className="font-serif text-[34px] md:text-[42px] leading-[0.98] text-white max-w-[10ch]">
+                  <div className="max-w-[10ch] font-serif text-[34px] leading-[0.98] text-white md:text-[42px]">
                     {displayName}
                   </div>
                   <div className="mt-3 text-[12px] uppercase tracking-[0.2em] text-white/74">
@@ -91,27 +75,26 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 </div>
                 <div className={stampIn ? "animate-stamp-press" : "opacity-0"}>
                   <Stamp tone="gold" className="border-white/65 text-white">
-                    {state.trip.city || "City"}<br />· issued ·
+                    {state.trip.city || "City"}
+                    <br />
+                    · issued ·
                   </Stamp>
                 </div>
               </div>
 
-              <div className="max-w-[18rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
+              <div className="max-w-[17rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
                 <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-white/80">
                   <Sparkles className="size-3.5" strokeWidth={1.8} />
-                  Passport vibe
+                  Travel read
                 </div>
-                <p className="mt-2 font-serif text-[24px] leading-[1.08] text-white">
-                  {styleSummary}
-                </p>
-                <p className="mt-2 max-w-[22ch] text-[13px] leading-snug text-white/82">
-                  {whimsyLine}
+                <p className="mt-2 font-serif text-[20px] leading-[1.18] text-white">
+                  {truncate(styleSummary, 72)}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {visualWords.map((word) => (
                     <span
                       key={word}
-                      className="inline-flex max-w-full items-center justify-center rounded-full border border-white/35 bg-white/16 px-3 py-1 text-center text-[11px] uppercase leading-tight tracking-[0.12em] text-white/88 break-words"
+                      className="rounded-full border border-white/35 bg-white/16 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/88"
                     >
                       {word}
                     </span>
@@ -124,25 +107,22 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
           <div className="bg-paper-soft p-7 md:p-8">
             <div className="flex items-start justify-between gap-6">
               <div>
-                <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-1">
+                <div className="mb-1 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
                   Passport holder
                 </div>
-                <div className="font-serif text-[24px] text-ink leading-tight">
+                <div className="font-serif text-[24px] leading-tight text-ink">
                   {displayName}
                 </div>
-                <div className="text-[11.5px] text-ink-soft mt-1">
+                <div className="mt-1 text-[11.5px] text-ink-soft">
                   {state.auth?.username
                     ? `@${state.auth.username}`
                     : `No. KH-${passportNo()}`}
                 </div>
-                {state.auth && (
-                  <div className="text-[11.5px] text-ink-soft mt-1">
+                {state.auth ? (
+                  <div className="mt-1 text-[11.5px] text-ink-soft">
                     Issued · No. KH-{String(state.auth.userId).padStart(6, "0")}
                   </div>
-                )}
-                <div className="text-[11.5px] text-ink-soft mt-1">
-                  {stampCount} stamp{stampCount === 1 ? "" : "s"} collected
-                </div>
+                ) : null}
               </div>
               <PostcardMeta
                 city={state.trip.city}
@@ -153,31 +133,33 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
             </div>
 
             <div className="mt-7">
-              <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-2">
-                Passport aura
+              <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                Preference
               </div>
-              <p className="font-serif text-[24px] leading-[1.15] text-ink max-w-[20ch]">
-                {whimsyLine}
+              <p className="max-w-[22ch] font-serif text-[22px] leading-[1.25] text-ink">
+                {truncate(styleSummary, 84)}
               </p>
             </div>
 
-            {chips.length > 0 && (
+            {chips.length > 0 ? (
               <div className="mt-6">
-                <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-3">
-                  Tiny tells
+                <div className="mb-3 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                  Signals
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {chips.map((c) => (
-                    <span key={c} className="chip">{c}</span>
+                  {chips.map((chip) => (
+                    <span key={chip} className="chip">
+                      {chip}
+                    </span>
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </article>
 
-      <Actions primary={{ label: "GO KNOWHERE", onClick: onEnter }} align="center" />
+      <Actions primary={{ label: "Go Knowhere →", onClick: onEnter }} align="center" />
     </section>
   );
 }
@@ -194,12 +176,14 @@ function PostcardMeta({
   confidence?: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-line/70 bg-paper p-4 min-w-[150px]">
-      <div className="text-[10px] tracking-[0.2em] uppercase text-ink-soft">Destination</div>
+    <div className="min-w-[150px] rounded-[18px] border border-line/70 bg-paper p-4">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft">Destination</div>
       <div className="mt-1 font-serif text-[18px] text-ink">{city}</div>
-      {area && <div className="mt-1 text-[12px] text-ink-soft">{area}</div>}
-      {timing && <div className="mt-3 text-[12px] text-ink-soft capitalize">{timing}</div>}
-      {confidence && <div className="mt-1 text-[12px] text-ink-soft">{confidence}</div>}
+      {area ? <div className="mt-1 text-[12px] text-ink-soft">{area}</div> : null}
+      {timing ? <div className="mt-3 text-[12px] capitalize text-ink-soft">{timing}</div> : null}
+      {confidence ? (
+        <div className="mt-1 text-[12px] text-ink-soft">{confidence}</div>
+      ) : null}
     </div>
   );
 }
@@ -207,13 +191,12 @@ function PostcardMeta({
 function buildContextChips(state: PassportState): string[] {
   const chips: string[] = [];
   if (state.picks.userType) chips.push(state.picks.userType);
-  state.picks.interests.slice(0, 4).forEach((i) => chips.push(i));
-  state.picks.vibes.slice(0, 3).forEach((v) => chips.push(v));
+  state.picks.interests.slice(0, 3).forEach((interest) => chips.push(interest));
+  state.picks.vibes.slice(0, 2).forEach((vibe) => chips.push(vibe));
   if (state.picks.mobility) chips.push(state.picks.mobility);
-  if (state.picks.budget) chips.push(state.picks.budget + " budget");
-  state.picks.avoids.slice(0, 2).forEach((a) => chips.push("no " + a));
-  state.profile?.pulls?.slice(0, 3).forEach((p) => chips.push(p));
-  return chips.slice(0, 12);
+  if (state.picks.budget) chips.push(`${state.picks.budget} budget`);
+  state.profile?.pulls?.slice(0, 2).forEach((pull) => chips.push(pull));
+  return chips.slice(0, 8);
 }
 
 function buildVisualWords(state: PassportState): string[] {
@@ -223,10 +206,9 @@ function buildVisualWords(state: PassportState): string[] {
     ...(state.picks.vibes ?? []),
     ...(state.picks.interests ?? []),
   ]
-    .map((item) => shortBadge(item))
+    .map((item) => item.replace(/\s+/g, " ").trim())
     .filter(Boolean);
-
-  return Array.from(new Set(words)).slice(0, 4);
+  return Array.from(new Set(words)).slice(0, 3);
 }
 
 function paletteFromState(state: PassportState): [string, string, string, string] {
@@ -239,12 +221,11 @@ function paletteFromState(state: PassportState): [string, string, string, string
   });
   const sum = Array.from(source).reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const palettes: Array<[string, string, string, string]> = [
-    ["rgba(127, 166, 199, 0.82)", "rgba(216, 168, 79, 0.58)", "rgba(14, 79, 85, 0.92)", "rgba(255, 251, 243, 0.88)"],
-    ["rgba(196, 90, 67, 0.72)", "rgba(127, 166, 199, 0.52)", "rgba(139, 47, 73, 0.88)", "rgba(255, 248, 236, 0.92)"],
-    ["rgba(85, 107, 62, 0.76)", "rgba(216, 168, 79, 0.48)", "rgba(47, 127, 134, 0.88)", "rgba(255, 251, 243, 0.94)"],
-    ["rgba(14, 79, 85, 0.8)", "rgba(196, 90, 67, 0.52)", "rgba(127, 166, 199, 0.9)", "rgba(255, 249, 240, 0.94)"],
+    ["rgba(127,166,199,0.82)", "rgba(216,168,79,0.58)", "rgba(14,79,85,0.92)", "rgba(255,251,243,0.88)"],
+    ["rgba(196,90,67,0.72)", "rgba(127,166,199,0.52)", "rgba(139,47,73,0.88)", "rgba(255,248,236,0.92)"],
+    ["rgba(85,107,62,0.76)", "rgba(216,168,79,0.48)", "rgba(47,127,134,0.88)", "rgba(255,251,243,0.94)"],
+    ["rgba(14,79,85,0.8)", "rgba(196,90,67,0.52)", "rgba(127,166,199,0.9)", "rgba(255,249,240,0.94)"],
   ];
-
   return palettes[sum % palettes.length];
 }
 
@@ -253,87 +234,9 @@ function quickPicksSummary(state: PassportState): string | null {
   if (!picks.userType && picks.interests.length === 0 && picks.vibes.length === 0) return null;
   const parts: string[] = [];
   if (picks.userType) parts.push(`A ${picks.userType}`);
-  if (picks.interests.length) parts.push(`drawn to ${picks.interests.slice(0, 3).join(", ")}`);
-  if (picks.vibes.length) parts.push(`looking for something ${picks.vibes.slice(0, 2).join(" and ")}`);
-  return parts.join(" ") + ".";
-}
-
-function buildPassportMood(state: PassportState): string {
-  const profileStyle = state.profile?.travelStyle?.trim();
-  if (profileStyle) return truncate(synthesizePhrase(profileStyle), 42);
-
-  const words = [
-    ...state.picks.vibes,
-    ...state.picks.interests,
-    ...(state.profile?.distinctive ?? []),
-  ]
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (words.length === 0) return "✨ Soft-launch wanderer";
-  return truncate(synthesizePhrase(words.slice(0, 3).join(", ")), 42);
-}
-
-function buildWhimsyLine(state: PassportState): string {
-  const city = state.trip.city || "somewhere lovely";
-  const vibe = state.picks.vibes[0] || state.profile?.pace || state.picks.interests[0] || "easygoing";
-  const interest = state.picks.interests[0] || state.profile?.pulls?.[0] || "little delights";
-  return truncate(`Made for ${vibe} days, ${interest}, and a very good version of ${city}.`, 84);
-}
-
-function buildPassportBadges(state: PassportState): string[] {
-  const raw = buildContextChips(state)
-    .map((item) => shortBadge(item))
-    .filter(Boolean);
-
-  return Array.from(new Set(raw)).slice(0, 6);
-}
-
-function shortBadge(value: string): string {
-  const compact = value
-    .replace(/^no\s+/i, "skip ")
-    .replace(/\s+budget$/i, " budget")
-    .replace(/\b(private villas|luxury hotels|strong visual identity)\b/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!compact) return "";
-  return `${emojiFor(compact)} ${truncate(compact, 18)}`;
-}
-
-function synthesizePhrase(value: string): string {
-  const compact = value
-    .replace(/\bprioritizing\b/gi, "")
-    .replace(/\bdesigned to\b/gi, "")
-    .replace(/\bthrough cities\b/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const parts = compact
-    .split(/[,.]| and /i)
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => `${emojiFor(part)} ${truncate(part, 16)}`);
-
-  return parts.length > 0 ? parts.join(" · ") : "✨ Whimsical detour energy";
-}
-
-function emojiFor(value: string): string {
-  const lower = value.toLowerCase();
-  if (/(food|restaurant|cafe|dining|meal|bistro)/.test(lower)) return "🍸";
-  if (/(art|design|gallery|aesthetic|visual|fashion|shopping)/.test(lower)) return "🎨";
-  if (/(beach|pool|yacht|water|sea)/.test(lower)) return "🌊";
-  if (/(walk|park|garden|nature|outdoor)/.test(lower)) return "🌿";
-  if (/(book|library|quiet|cozy|corner)/.test(lower)) return "📚";
-  if (/(night|music|party|club)/.test(lower)) return "🌙";
-  if (/(luxury|private|hotel|villa)/.test(lower)) return "✨";
-  if (/(culture|museum|history)/.test(lower)) return "🏛️";
-  if (/(slow|calm|relaxed|gentle)/.test(lower)) return "☁️";
-  if (/(bold|energetic|fast|vibrant)/.test(lower)) return "⚡";
-  if (/(budget)/.test(lower)) return "💸";
-  if (/(skip|avoid|no )/.test(lower)) return "🚫";
-  return "💫";
+  if (picks.interests.length) parts.push(`drawn to ${picks.interests.slice(0, 2).join(", ")}`);
+  if (picks.vibes.length) parts.push(`looking for ${picks.vibes.slice(0, 1).join(" and ")}`);
+  return `${parts.join(" ")}.`;
 }
 
 function passportNo() {
@@ -342,5 +245,5 @@ function passportNo() {
 
 function truncate(value: string, max: number) {
   if (value.length <= max) return value;
-  return `${value.slice(0, max).trim()}…`;
+  return `${value.slice(0, max).trim()}...`;
 }
