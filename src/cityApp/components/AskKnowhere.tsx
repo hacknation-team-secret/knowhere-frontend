@@ -198,7 +198,7 @@ export function AskKnowhere({ baseDetour, onResult }: AskKnowhereProps) {
             className="mt-3 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-stamp hover:opacity-80 transition-opacity"
           >
             <MessageSquare className="h-3.5 w-3.5" />
-            Continue in Research Chat
+            Continue in City Guide
           </button>
         </div>
       )}

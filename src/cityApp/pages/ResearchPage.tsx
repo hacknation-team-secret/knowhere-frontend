@@ -57,8 +57,8 @@ export default function ResearchPage() {
         <header className="rounded-[2rem] border border-line bg-card p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-soft">Research</p>
-              <h1 className="mt-1 font-serif text-3xl text-ink">Research Agent</h1>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-soft">City Guide</p>
+              <h1 className="mt-1 font-serif text-3xl text-ink">City Guide</h1>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -67,7 +67,7 @@ export default function ResearchPage() {
                 className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
               >
                 <Bot className="h-3.5 w-3.5" />
-                Open agent
+                Open guide
               </button>
               <button
                 type="button"
@@ -79,7 +79,7 @@ export default function ResearchPage() {
             </div>
           </div>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            This is only for research chat and extraction. Group setup, invites, and budget controls live in their own flow.
+            This is your chat and extraction space. Group setup, invites, and budget controls live in their own flow.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link

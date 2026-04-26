@@ -270,7 +270,7 @@ export default function SharedWallets() {
               className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
             >
               <ArrowRightLeft className="h-3.5 w-3.5" />
-              Trip copilot
+              City Guide
             </Link>
           </div>
         </div>
@@ -741,5 +741,4 @@ function parseMoneyToCents(value: string) {
 function formatMoneyInput(amountCents: number) {
   return (amountCents / 100).toFixed(2).replace(/\.00$/, "");
 }
-
 

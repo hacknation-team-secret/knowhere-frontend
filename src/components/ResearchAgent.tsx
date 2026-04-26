@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -82,7 +83,7 @@ export function ResearchAgentProvider({ children }: { children: ReactNode }) {
     if (!query) return;
 
     if (!auth.user) {
-      setError("Sign in to use the research agent.");
+      setError("Sign in to use City Guide.");
       return;
     }
 
@@ -151,7 +152,7 @@ export function ResearchConversation({ className }: { className?: string }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-stamp" strokeWidth={2} />
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">Research Agent</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">City Guide</p>
         </div>
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {threadId ? <span>Thread {threadId}</span> : <span>New thread</span>}
@@ -162,7 +163,7 @@ export function ResearchConversation({ className }: { className?: string }) {
       </div>
 
       <p className="mt-1.5 font-serif text-[18px] italic leading-snug text-foreground/85">
-        Keep this separate from group setup. Ask for research, context, and next steps.
+        Ask for context, recommendations, and next steps tailored to your passport.
       </p>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -224,7 +225,7 @@ export function ResearchConversation({ className }: { className?: string }) {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Ask about your research context…"
+          placeholder="Ask City Guide about your next move…"
           className="h-14 w-full rounded-2xl border border-line bg-card pl-5 pr-14 text-[15px] placeholder:text-ink-soft/50 focus:border-stamp focus:outline-none focus:ring-4 focus:ring-stamp/5 shadow-sm"
         />
         <button
@@ -256,21 +257,24 @@ export function ResearchConversation({ className }: { className?: string }) {
 }
 
 export function ResearchAgentLauncher() {
+  const location = useLocation();
   const { open, setOpen } = useResearchAgent();
+
+  if (!location.pathname.startsWith("/app")) return null;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button className="fixed bottom-5 right-5 z-50 rounded-full shadow-lg">
           <MessageSquare className="h-4 w-4" />
-          Research Agent
+          City Guide
         </Button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-[520px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Bot className="h-4 w-4 text-stamp" />
-            Research Agent
+            City Guide
           </SheetTitle>
         </SheetHeader>
         <div className="mt-4">

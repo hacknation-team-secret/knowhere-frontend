@@ -250,7 +250,7 @@ export default function CityPulse() {
         onResult={(d) => navigate(`/app/detour/${d.id}`, { state: { detour: d } })}
       />
 
-      {/* Trip Copilot CTA */}
+      {/* City Guide CTA */}
       <Link
         to="/app/research"
         className="flex items-center justify-between rounded-3xl border border-line bg-paper-soft p-6 shadow-sm hover:border-stamp/40 transition-colors group"
@@ -260,7 +260,7 @@ export default function CityPulse() {
             <Bot className="h-6 w-6" />
           </div>
           <div>
-             <h3 className="font-serif text-lg text-ink">Plan with the Trip Copilot</h3>
+             <h3 className="font-serif text-lg text-ink">Plan with City Guide</h3>
              <p className="text-sm text-ink-soft">Coordinate groups, shared favorites, budgets, and next stops.</p>
           </div>
         </div>

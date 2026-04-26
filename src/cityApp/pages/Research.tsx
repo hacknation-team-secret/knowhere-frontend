@@ -167,7 +167,7 @@ export default function Research() {
 
     try {
       if (!auth.user) {
-        const ok = await requireAuth("Sign in to chat with the research agent.");
+        const ok = await requireAuth("Sign in to chat with City Guide.");
         if (!ok) {
           setThinking(false);
           return;
@@ -227,7 +227,7 @@ export default function Research() {
       const group = await api.acceptGroupInvite(groupId);
       setGroups((prev) => prev.map((item) => item.id === group.id ? group : item));
       setSelectedGroupId(group.id);
-      toast({ title: "Joined group", description: "The research agent can now plan with this group." });
+      toast({ title: "Joined group", description: "City Guide can now plan with this group." });
     } catch (e) {
       toast({ title: "Join failed", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -364,7 +364,7 @@ export default function Research() {
           <h2 className="font-serif text-xl">Trip Groups</h2>
         </div>
         <p className="mt-2 text-sm text-ink-soft">
-          Discover platform groups, invite users on Knowhere, then ask the copilot for itineraries that combine everyone's passport.
+          Discover platform groups, invite users on Knowhere, then ask City Guide for itineraries that combine everyone's passport.
         </p>
 
         {!auth.user ? (
@@ -868,7 +868,7 @@ export default function Research() {
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-stamp" strokeWidth={2} />
-            <h1 className="font-serif text-3xl text-ink">Trip Copilot</h1>
+            <h1 className="font-serif text-3xl text-ink">City Guide</h1>
           </div>
           <p className="mt-2 text-ink-soft italic font-serif">
             Plan with your passport, your groups, votes, and shared budgets.

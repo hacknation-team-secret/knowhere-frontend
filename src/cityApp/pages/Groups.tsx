@@ -147,7 +147,7 @@ export default function Groups() {
       const group = await api.acceptGroupInvite(groupId);
       setGroups((prev) => prev.map((item) => (item.id === group.id ? group : item)));
       setSelectedGroupId(group.id);
-      toast({ title: "Joined group", description: "The research agent can now plan with this group." });
+      toast({ title: "Joined group", description: "City Guide can now plan with this group." });
     } catch (e) {
       toast({ title: "Join failed", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -316,7 +316,7 @@ export default function Groups() {
           to="/app/research"
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-paper px-3 py-2 text-sm font-semibold text-stamp hover:opacity-80"
         >
-          Back to research
+          Back to City Guide
         </Link>
       </aside>
 
@@ -501,7 +501,7 @@ export default function Groups() {
                 </div>
               )}
               <p className="text-xs text-ink-soft">
-                {acceptedMemberCount} accepted member{acceptedMemberCount === 1 ? "" : "s"}; the research agent will stay separate.
+                {acceptedMemberCount} accepted member{acceptedMemberCount === 1 ? "" : "s"}; City Guide stays separate.
               </p>
             </section>
           </div>
@@ -566,7 +566,7 @@ export default function Groups() {
             to="/app/research"
             className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
           >
-            Research
+            City Guide
           </Link>
           <Link
             to="/app/wallets/shared"
