@@ -161,7 +161,7 @@ export function OnboardingFlow() {
         <CityScreen
           trip={state.trip}
           onChange={(trip) => setState((s) => ({ ...s, trip }))}
-          onContinue={() => enterApp("/app/research")}
+          onContinue={() => goTo("preview")}
         />
       )}
 
@@ -178,6 +178,12 @@ export function OnboardingFlow() {
             };
             handleAuthed(auth, state);
           }}
+        />
+      )}
+      {screen === "preview" && (
+        <PassportPreviewScreen
+          state={state}
+          onEnter={() => enterApp("/app/groups")}
         />
       )}
     </Shell>

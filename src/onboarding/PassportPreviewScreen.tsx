@@ -247,7 +247,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
         </div>
       </section>
 
-      <Actions primary={{ label: "Enter Knowhere", onClick: onEnter }} align="center" />
+      <Actions primary={{ label: "Start the group plan", onClick: onEnter }} align="center" />
     </section>
   );
 }

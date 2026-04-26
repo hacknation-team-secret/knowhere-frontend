@@ -67,7 +67,7 @@ export default function ResearchPage() {
                 className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
               >
                 <Bot className="h-3.5 w-3.5" />
-                Open guide
+                Open City Guide
               </button>
               <button
                 type="button"
@@ -79,7 +79,7 @@ export default function ResearchPage() {
             </div>
           </div>
           <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-            This is your chat and extraction space. Group setup, invites, and budget controls live in their own flow.
+            City Guide turns passports, budgets, and group location into a shared detour.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link

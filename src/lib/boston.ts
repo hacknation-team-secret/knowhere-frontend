@@ -73,6 +73,19 @@ export const PLACES: Place[] = [
     hours: "5pm–1am",
     walkMin: 5,
   },
+  {
+    id: "p_cambridge_side",
+    name: "CambridgeSide Galleria",
+    category: "shop",
+    neighborhood: "Kendall Square",
+    x: 44,
+    y: 34,
+    blurb: "Mall energy, but with enough local food stops to keep the group moving.",
+    tags: ["shopping", "food", "social"],
+    priceLevel: 2,
+    hours: "10am–8pm",
+    walkMin: 7,
+  },
 
   // Harvard Square
   {
@@ -113,6 +126,19 @@ export const PLACES: Place[] = [
     priceLevel: 1,
     hours: "10am–6pm",
     walkMin: 6,
+  },
+  {
+    id: "p_harvard_art_museums",
+    name: "Harvard Art Museums",
+    category: "museum",
+    neighborhood: "Harvard Square",
+    x: 18,
+    y: 28,
+    blurb: "A tight, high-signal museum stop that works for art lovers and design people alike.",
+    tags: ["art", "museums", "architecture"],
+    priceLevel: 2,
+    hours: "10am–5pm",
+    walkMin: 5,
   },
 
   // Back Bay
@@ -155,6 +181,19 @@ export const PLACES: Place[] = [
     hours: "Always",
     walkMin: 2,
   },
+  {
+    id: "p_bpl",
+    name: "Boston Public Library",
+    category: "landmark",
+    neighborhood: "Back Bay",
+    x: 50,
+    y: 58,
+    blurb: "The reading room is the kind of quiet that resets the whole group.",
+    tags: ["quiet", "architecture", "art"],
+    priceLevel: 1,
+    hours: "9am–8pm",
+    walkMin: 3,
+  },
 
   // Seaport
   {
@@ -195,6 +234,19 @@ export const PLACES: Place[] = [
     priceLevel: 3,
     hours: "11am–10pm",
     walkMin: 6,
+  },
+  {
+    id: "p_harborwalk",
+    name: "Harborwalk",
+    category: "park",
+    neighborhood: "Seaport",
+    x: 74,
+    y: 68,
+    blurb: "The easiest way to give a mixed group a scenic reset between meals.",
+    tags: ["parks", "scenic", "local"],
+    priceLevel: 1,
+    hours: "Always",
+    walkMin: 4,
   },
 
   // North End
@@ -237,6 +289,19 @@ export const PLACES: Place[] = [
     hours: "9:30am–5pm",
     walkMin: 4,
   },
+  {
+    id: "p_bovas",
+    name: "Bova's Bakery",
+    category: "café",
+    neighborhood: "North End",
+    x: 66,
+    y: 40,
+    blurb: "A late-night bakery stop that can still win over the whole table.",
+    tags: ["food", "iconic", "local"],
+    priceLevel: 1,
+    hours: "24 hours",
+    walkMin: 3,
+  },
 
   // Beacon Hill
   {
@@ -265,6 +330,19 @@ export const PLACES: Place[] = [
     hours: "7am–10pm",
     walkMin: 3,
   },
+  {
+    id: "p_boston_common",
+    name: "Boston Common",
+    category: "park",
+    neighborhood: "Beacon Hill",
+    x: 50,
+    y: 46,
+    blurb: "The classic middle point for groups that need to re-center and keep walking.",
+    tags: ["parks", "scenic", "iconic"],
+    priceLevel: 1,
+    hours: "Always",
+    walkMin: 4,
+  },
 
   // Fenway
   {
@@ -292,6 +370,19 @@ export const PLACES: Place[] = [
     priceLevel: 2,
     hours: "10am–5pm",
     walkMin: 7,
+  },
+  {
+    id: "p_berklee",
+    name: "Berklee Performance Center",
+    category: "venue",
+    neighborhood: "Fenway",
+    x: 39,
+    y: 58,
+    blurb: "The easiest music stop when the group wants something with a little lift.",
+    tags: ["music", "social", "iconic"],
+    priceLevel: 2,
+    hours: "Varies",
+    walkMin: 6,
   },
 ];
 
@@ -381,6 +472,39 @@ export const PERKS: Perk[] = [
     targeting: ["Bluebike riders", "Seaport arrivals"],
     windowLabel: "Today, 4–7pm",
     redemption: "qr",
+  },
+  {
+    id: "perk_bpl",
+    merchantId: "m_bpl",
+    merchantName: "Boston Public Library",
+    placeId: "p_bpl",
+    title: "Free exhibit guide",
+    description: "Show this pass at the front desk for a quick, curated reading-room loop.",
+    targeting: ["Quiet groups", "Architecture lovers"],
+    windowLabel: "Today, 9am–8pm",
+    redemption: "show-screen",
+  },
+  {
+    id: "perk_bovas",
+    merchantId: "m_bovas",
+    merchantName: "Bova's Bakery",
+    placeId: "p_bovas",
+    title: "Half-off second pastry",
+    description: "A simple, easy win for groups that need a sweet stop late in the route.",
+    targeting: ["Food groups", "North End walkers"],
+    windowLabel: "Today, all day",
+    redemption: "qr",
+  },
+  {
+    id: "perk_harvard_art_museums",
+    merchantId: "m_harvard_art",
+    merchantName: "Harvard Art Museums",
+    placeId: "p_harvard_art_museums",
+    title: "Discounted companion ticket",
+    description: "Use for a pair or a small group visit without blowing the budget.",
+    targeting: ["Art groups", "Design travelers"],
+    windowLabel: "Today, 10am–5pm",
+    redemption: "show-screen",
   },
   {
     id: "perk_tatte",

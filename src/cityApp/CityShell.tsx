@@ -248,7 +248,7 @@ function TopNav() {
           Pulse
         </NavItem>
         <NavItem to="/app/research" icon={<Bot className="h-3.5 w-3.5" strokeWidth={1.75} />}>
-          Guide
+          City Guide
         </NavItem>
         <NavItem to="/app/groups" icon={<Users className="h-3.5 w-3.5" strokeWidth={1.75} />}>
           Groups

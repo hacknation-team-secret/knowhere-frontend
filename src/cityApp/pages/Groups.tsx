@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { DollarSign, Heart, Loader2, UserPlus, Users } from "lucide-react";
 
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
+import { useResearchAgent } from "@/components/ResearchAgent";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import type { ApiGroup, ApiGroupBudget, ApiGroupFavorite, ApiPublicUser } from "@/lib/api";
+import type { Profile } from "@/cityApp/lib/types";
+import type { ApiGroup, ApiGroupBudget, ApiGroupFavorite, ApiPassport, ApiPublicUser } from "@/lib/api";
 
 export default function Groups() {
-  const { auth } = useApp();
+  const { auth, profile } = useApp();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { sendMessage } = useResearchAgent();
   const [users, setUsers] = useState<ApiPublicUser[]>([]);
   const [groups, setGroups] = useState<ApiGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
@@ -48,6 +52,7 @@ export default function Groups() {
         .some((value) => value!.toLowerCase().includes(query));
     })
     .slice(0, 8);
+  const recommendedInvitees = invitableUsers.slice(0, 3);
   const acceptedMemberCount = selectedGroup?.memberships.filter(
     (membership) => membership.status === "accepted",
   ).length ?? 0;
@@ -221,6 +226,66 @@ export default function Groups() {
     }
   };
 
+  const createGuidedGroup = async () => {
+    if (!groupName.trim()) return;
+    setGroupLoading(true);
+    setError(null);
+    try {
+      const group = await api.createGroup(groupName.trim(), groupDescription.trim() || undefined);
+      setGroups((prev) => [group, ...prev]);
+      setSelectedGroupId(group.id);
+
+      for (const user of recommendedInvitees) {
+        const updated = await api.inviteToGroup(group.id, user.username);
+        setGroups((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+      }
+
+      toast({
+        title: "Group created",
+        description: "City Guide will use these invited members to shape the route.",
+      });
+    } catch (e) {
+      toast({ title: "Group failed", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
+  const confirmBudgetAndLaunchCityGuide = async () => {
+    if (!selectedGroup || !budgetAmount) return;
+    setGroupLoading(true);
+    setError(null);
+    try {
+      const budget = await api.upsertGroupBudget(selectedGroup.id, {
+        total_budget: Number(budgetAmount),
+        currency: "USD",
+        notes: budgetNotes.trim() || undefined,
+      });
+      setBudgets((prev) => {
+        const exists = prev.some((item) => item.user.id === budget.user.id);
+        return exists ? prev.map((item) => (item.user.id === budget.user.id ? budget : item)) : [...prev, budget];
+      });
+
+      const nextGroup =
+        (await api.listGroups()).find((item) => item.id === selectedGroup.id) ?? selectedGroup;
+      const guidePrompt = await buildCityGuidePrompt({
+        group: nextGroup,
+        profile,
+        budget,
+      });
+      await sendMessage(guidePrompt, nextGroup.id);
+      navigate("/app/research");
+      toast({
+        title: "City Guide started",
+        description: "The shared research thread now has passports, budget, and location.",
+      });
+    } catch (e) {
+      toast({ title: "Planning failed", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
   if (!auth.user) {
     return (
       <div className="mx-auto max-w-3xl rounded-[2rem] border border-dashed border-line p-6 text-center text-sm text-ink-soft">
@@ -230,14 +295,62 @@ export default function Groups() {
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[360px_1fr]">
+    <div className="mx-auto space-y-6 max-w-6xl">
+      <section className="rounded-[2rem] border border-stamp/30 bg-gradient-to-br from-stamp/10 to-paper p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">Happy path</p>
+            <h2 className="mt-1 font-serif text-2xl text-ink">Create the group, confirm budget, then start City Guide.</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
+              We will invite a few matching members, lock the budget, and open a thread that uses passports, budget, and Boston location in one place.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void createGuidedGroup()}
+              disabled={groupLoading || !groupName.trim()}
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
+            >
+              {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+              Create group + invite
+            </button>
+            <button
+              type="button"
+              onClick={() => void confirmBudgetAndLaunchCityGuide()}
+              disabled={groupLoading || !selectedGroup || !budgetAmount}
+              className="inline-flex items-center gap-2 rounded-full border border-stamp/30 bg-stamp/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp disabled:opacity-50"
+            >
+              <Sparkles className="h-4 w-4" />
+              Confirm budget + start City Guide
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {recommendedInvitees.length > 0 ? (
+            recommendedInvitees.map((user) => (
+              <span
+                key={user.id}
+                className="rounded-full border border-line bg-card px-3 py-1 text-xs font-medium text-ink-soft"
+              >
+                Invite @{user.username}
+              </span>
+            ))
+          ) : (
+            <span className="text-xs text-ink-soft">No additional invite recommendations right now.</span>
+          )}
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
       <aside className="space-y-4 rounded-[2rem] border border-line bg-card p-5 shadow-sm h-fit">
         <div className="flex items-center gap-2 text-ink">
           <Users className="h-5 w-5 text-stamp" strokeWidth={2} />
           <h2 className="font-serif text-xl">Trip Groups</h2>
         </div>
         <p className="text-sm text-ink-soft">
-          Create a trip group here, then keep research chat focused on research.
+          Create a trip group here, invite the right people, then hand it to City Guide.
         </p>
 
         <div className="space-y-2 rounded-2xl border border-line bg-paper p-4">
@@ -316,7 +429,7 @@ export default function Groups() {
           to="/app/research"
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-paper px-3 py-2 text-sm font-semibold text-stamp hover:opacity-80"
         >
-          Back to City Guide
+          Open City Guide
         </Link>
       </aside>
 
@@ -414,14 +527,14 @@ export default function Groups() {
                     placeholder="$/pp"
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={addFavorite}
-                  disabled={groupLoading || !favoriteTitle.trim()}
-                  className="w-full rounded-xl border border-stamp/30 bg-stamp/10 px-3 py-2 text-sm font-semibold text-stamp disabled:opacity-50"
-                >
-                  Add and Vote
-                </button>
+              <button
+                type="button"
+                onClick={addFavorite}
+                disabled={groupLoading || !favoriteTitle.trim()}
+                className="w-full rounded-xl border border-stamp/30 bg-stamp/10 px-3 py-2 text-sm font-semibold text-stamp disabled:opacity-50"
+              >
+                Add and Vote
+              </button>
               </div>
 
               <div className="space-y-2">
@@ -490,6 +603,14 @@ export default function Groups() {
               >
                 Save Budget
               </button>
+              <button
+                type="button"
+                onClick={() => void confirmBudgetAndLaunchCityGuide()}
+                disabled={groupLoading || !selectedGroup || !budgetAmount}
+                className="w-full rounded-xl border border-stamp/30 bg-stamp/10 px-3 py-2 text-sm font-semibold text-stamp disabled:opacity-50"
+              >
+                Confirm budget and start City Guide
+              </button>
               {budgets.length > 0 && (
                 <div className="space-y-1 text-xs text-ink-soft">
                   {budgets.map((budget) => (
@@ -501,7 +622,7 @@ export default function Groups() {
                 </div>
               )}
               <p className="text-xs text-ink-soft">
-                {acceptedMemberCount} accepted member{acceptedMemberCount === 1 ? "" : "s"}; City Guide stays separate.
+                {acceptedMemberCount} accepted member{acceptedMemberCount === 1 ? "" : "s"}; City Guide will use the shared context.
               </p>
             </section>
           </div>
@@ -577,6 +698,51 @@ export default function Groups() {
           </Link>
         </div>
       </div>
+      </div>
     </div>
   );
+}
+
+async function buildCityGuidePrompt({
+  group,
+  profile,
+  budget,
+}: {
+  group: ApiGroup;
+  profile: Profile | null;
+  budget: ApiGroupBudget;
+}): Promise<string> {
+  const passportSummaries = await Promise.all(
+    group.memberships.map(async ({ user, status }) => {
+      try {
+        const passport = await api.passport(user.username);
+        return `@${user.username} (${status}): ${summarizePassport(passport)}`;
+      } catch {
+        return `@${user.username} (${status}): passport unavailable`;
+      }
+    }),
+  );
+
+  const location = profile?.startingLocation || "Boston";
+  const interests = profile?.interests.length ? profile.interests.join(", ") : "not yet set";
+  const vibe = profile?.vibe || "local";
+  const mobility = profile?.mobility || "mixed";
+  const userBudget = `${budget.currency} ${budget.total_budget.toFixed(0)}`;
+
+  return [
+    "You are City Guide, the personal research agent for this Boston group.",
+    `Build a detour from ${location} that keeps the whole group within ${userBudget}.`,
+    `Use the current user's passport profile: vibe=${vibe}, mobility=${mobility}, interests=${interests}.`,
+    `Group context: ${group.name}${group.description ? ` — ${group.description}` : ""}.`,
+    "Use the member passport summaries below to find overlap, location fit, and a realistic route.",
+    ...passportSummaries,
+    "Respond with the best shared detour, not just research notes.",
+  ].join("\n");
+}
+
+function summarizePassport(passport: ApiPassport) {
+  const events = passport.attended_events.slice(0, 4).map((event) => event.title);
+  const details = events.length ? events.join(", ") : "no attended events yet";
+  const description = passport.description?.trim();
+  return `${description ? `${description}. ` : ""}${details}`;
 }

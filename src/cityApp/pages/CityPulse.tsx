@@ -260,8 +260,8 @@ export default function CityPulse() {
             <Bot className="h-6 w-6" />
           </div>
           <div>
-             <h3 className="font-serif text-lg text-ink">Plan with City Guide</h3>
-             <p className="text-sm text-ink-soft">Coordinate groups, shared favorites, budgets, and next stops.</p>
+            <h3 className="font-serif text-lg text-ink">Plan with City Guide</h3>
+            <p className="text-sm text-ink-soft">Coordinate groups, shared favorites, budgets, and next stops.</p>
           </div>
         </div>
         <Sparkles className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />

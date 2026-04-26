@@ -27,17 +27,18 @@ interface ResearchAgentState {
   thinking: boolean;
   error: string | null;
   setOpen: (open: boolean) => void;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, groupId?: number) => Promise<void>;
   captureThread: () => Promise<void>;
   clearThread: () => void;
 }
 
 const STORAGE_KEY = "knowhere.research-agent.v1";
+const AGENT_NAME = "City Guide";
 const SUGGESTIONS = [
-  "Plan an itinerary for my group using everyone's passports.",
-  "What should I do this weekend based on my passport?",
-  "Analyze my travel style from my detours.",
-  "Recommend a new neighborhood for me to explore.",
+  "Build a shared Boston detour from everyone's passports.",
+  "What should City Guide prioritize for this group budget?",
+  "Match our location, pace, and interests into one route.",
+  "Suggest a neighborhood that fits the whole group.",
 ];
 
 const ResearchAgentContext = createContext<ResearchAgentState | null>(null);
@@ -78,12 +79,12 @@ export function ResearchAgentProvider({ children }: { children: ReactNode }) {
 
   const setOpen = (open: boolean) => setState((prev) => ({ ...prev, open }));
 
-  const sendMessage = async (message: string) => {
+  const sendMessage = async (message: string, groupId?: number) => {
     const query = message.trim();
     if (!query) return;
 
     if (!auth.user) {
-      setError("Sign in to use City Guide.");
+      setError(`Sign in to use ${AGENT_NAME}.`);
       return;
     }
 
@@ -96,7 +97,7 @@ export function ResearchAgentProvider({ children }: { children: ReactNode }) {
     setThinking(true);
 
     try {
-      const res = await api.research(query, state.threadId);
+      const res = await api.research(query, state.threadId, groupId);
       setState((prev) => ({
         ...prev,
         threadId: res.thread_id,
@@ -152,7 +153,7 @@ export function ResearchConversation({ className }: { className?: string }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-stamp" strokeWidth={2} />
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">City Guide</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">{AGENT_NAME}</p>
         </div>
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
           {threadId ? <span>Thread {threadId}</span> : <span>New thread</span>}
@@ -163,7 +164,7 @@ export function ResearchConversation({ className }: { className?: string }) {
       </div>
 
       <p className="mt-1.5 font-serif text-[18px] italic leading-snug text-foreground/85">
-        Ask for context, recommendations, and next steps tailored to your passport.
+        Use passports, budget, and location to shape the shared detour.
       </p>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -184,7 +185,7 @@ export function ResearchConversation({ className }: { className?: string }) {
         {messages.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/70 bg-card/40 px-4 py-6 text-center">
             <Bot className="mx-auto h-5 w-5 text-stamp" />
-            <p className="mt-2 text-sm text-muted-foreground">Ask a question to start the thread.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Ask City Guide to start the thread.</p>
           </div>
         ) : (
           messages.map((message, index) => (
@@ -225,7 +226,7 @@ export function ResearchConversation({ className }: { className?: string }) {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Ask City Guide about your next move…"
+          placeholder="Ask City Guide…"
           className="h-14 w-full rounded-2xl border border-line bg-card pl-5 pr-14 text-[15px] placeholder:text-ink-soft/50 focus:border-stamp focus:outline-none focus:ring-4 focus:ring-stamp/5 shadow-sm"
         />
         <button
