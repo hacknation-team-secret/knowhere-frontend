@@ -232,7 +232,7 @@ export default function GroupWizard() {
                   className={cn(
                     "flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold transition-colors",
                     done
-                      ? "bg-stamp text-white"
+                      ? "bg-ocean-deep text-white"
                       : active
                         ? "bg-ink text-white"
                         : "bg-line/50 text-ink-soft",
@@ -243,7 +243,7 @@ export default function GroupWizard() {
                 <span
                   className={cn(
                     "hidden text-[11px] uppercase tracking-[0.18em] sm:block transition-colors",
-                    active ? "font-semibold text-ink" : done ? "text-stamp" : "text-ink-soft",
+                    active ? "font-semibold text-ink" : done ? "text-ocean-deep" : "text-ink-soft",
                   )}
                 >
                   {s.label}
@@ -253,7 +253,7 @@ export default function GroupWizard() {
                 <div
                   className={cn(
                     "mx-3 h-px flex-1 transition-colors",
-                    done ? "bg-stamp/40" : "bg-line/50",
+                    done ? "bg-ocean/35" : "bg-line/50",
                   )}
                 />
               )}
@@ -457,7 +457,7 @@ export default function GroupWizard() {
         <div className="space-y-10">
           {generating && (
             <div className="flex flex-col items-center py-24 text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-stamp" />
+              <Loader2 className="h-8 w-8 animate-spin text-ocean-deep" />
               <p className="mt-5 font-serif text-2xl text-ink">Crafting your detour…</p>
               <p className="mt-2 text-sm text-ink-soft">
                 Reading passports, checking events, balancing the group.
