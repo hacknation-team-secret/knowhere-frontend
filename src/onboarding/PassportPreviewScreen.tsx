@@ -30,6 +30,9 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
   const palette = useMemo(() => paletteFromState(state), [state]);
   const heroEmoji = heroEmojiFromState(state);
   const heroImage = heroImageFromState(state);
+  const miniNote = buildMiniNote(state);
+  const routeMood = buildRouteMood(state);
+  const rightColumnChips = chips.slice(0, 4);
 
   return (
     <section>
@@ -150,43 +153,51 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
               />
             </div>
 
-            <div className="mt-7 grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
-              <div>
-                <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
-                  Preference
-                </div>
-                <p className="max-w-[14ch] font-serif text-[30px] leading-[0.95] text-ink md:text-[38px]">
-                  {truncate(styleSummary, 34)}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {editorialWords.map((word) => (
-                    <span key={word} className="chip">
-                      {word}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[22px] border border-line/70 bg-paper p-4">
+            <div className="mt-7 grid gap-5">
+              <div className="rounded-[22px] border border-line/70 bg-paper p-5">
                 <div className="mb-2 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
                   <MapPin className="size-3.5" strokeWidth={1.8} />
                   Destination
                 </div>
-                <div className="font-serif text-[28px] leading-none text-ink">{state.trip.city}</div>
+                <div className="font-serif text-[32px] leading-none text-ink">{state.trip.city}</div>
                 <div className="mt-2 text-[13px] text-ink-soft">{state.trip.area || "City center"}</div>
                 <div className="mt-3 text-[12px] uppercase tracking-[0.18em] text-ink-soft">
                   {state.trip.timing || "right now"}
                 </div>
               </div>
+
+              <div className="grid gap-4 md:grid-cols-[1.05fr_0.95fr]">
+                <div className="rounded-[22px] border border-line/70 bg-card p-5">
+                  <div className="text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                    Editorial note
+                  </div>
+                  <p className="mt-3 max-w-[15ch] font-serif text-[24px] leading-[1.02] text-ink">
+                    {miniNote}
+                  </p>
+                </div>
+
+                <div className="rounded-[22px] border border-line/70 bg-paper p-5">
+                  <div className="text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                    Route mood
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {routeMood.map((line) => (
+                      <p key={line} className="text-sm text-ink-soft">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {chips.length > 0 ? (
+            {rightColumnChips.length > 0 ? (
               <div className="mt-6">
                 <div className="mb-3 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
                   Signals
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {chips.map((chip) => (
+                  {rightColumnChips.map((chip) => (
                     <span key={chip} className="chip">
                       {chip}
                     </span>
@@ -194,15 +205,6 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 </div>
               </div>
             ) : null}
-
-            <div className="mt-6 rounded-[22px] border border-line/70 bg-card p-4">
-              <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
-                Big read
-              </div>
-              <p className="max-w-[18ch] font-serif text-[24px] leading-[1.03] text-ink">
-                {truncate(styleSummary, 52)}
-              </p>
-            </div>
           </div>
         </div>
       </article>
@@ -274,6 +276,32 @@ function buildEditorialWords(state: PassportState): string[] {
     .slice(0, 3);
 }
 
+function buildMiniNote(state: PassportState) {
+  const topVibe = state.picks.vibes[0];
+  const topInterest = state.picks.interests[0];
+  const topPull = state.profile?.pulls?.[0];
+
+  if (topVibe && topInterest) {
+    return `${capitalize(topVibe)} days, ${topInterest} nights.`;
+  }
+  if (topPull) {
+    return `${capitalize(shortLabel(topPull))}, lightly stamped.`;
+  }
+  return "A soft edit for the next city.";
+}
+
+function buildRouteMood(state: PassportState) {
+  const pace = shortLabel(state.profile?.pace || "easy glide");
+  const mobility = shortLabel(state.picks.mobility || "mixed");
+  const budget = shortLabel(state.picks.budget || "medium");
+
+  return [
+    `${heroEmojiFromState(state)} ${capitalize(pace)}`,
+    `Moves by ${mobility}`,
+    `Leans ${budget}`,
+  ];
+}
+
 function paletteFromState(state: PassportState): [string, string, string, string] {
   const source = JSON.stringify({
     style: state.profile?.travelStyle,
@@ -318,9 +346,15 @@ function shortLabel(value: string) {
     .replace(/\b(restaurants?)\b/gi, "dining")
     .replace(/\b(poolside settings?)\b/gi, "poolside")
     .replace(/\b(strong visual identity)\b/gi, "visuals")
+    .replace(/\bhighly structured but designed to feel relaxed\b/gi, "structured ease")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 24);
+}
+
+function capitalize(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function confidenceBadge(confidence?: string) {
