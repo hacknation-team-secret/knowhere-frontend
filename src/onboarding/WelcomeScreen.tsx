@@ -107,53 +107,56 @@ function CafeIllustration() {
     <svg viewBox="0 0 360 440" className="h-full w-full" aria-hidden="true">
       <defs>
         <filter id="cafe-wash" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="10" />
+          <feGaussianBlur stdDeviation="14" />
         </filter>
       </defs>
-      <g filter="url(#cafe-wash)" opacity="0.86">
-        <rect x="153" y="52" width="112" height="142" rx="34" fill="hsl(39 78% 92% / 0.72)" />
-        <ellipse cx="213" cy="221" rx="54" ry="24" fill="hsl(33 94% 84% / 0.38)" />
-        <ellipse cx="122" cy="266" rx="30" ry="16" fill="hsl(32 77% 83% / 0.28)" />
-        <ellipse cx="302" cy="285" rx="36" ry="14" fill="hsl(30 70% 80% / 0.26)" />
-        <ellipse cx="298" cy="165" rx="36" ry="36" fill="hsl(85 38% 78% / 0.34)" />
+      <g filter="url(#cafe-wash)" opacity="0.92">
+        <rect x="182" y="54" width="92" height="116" rx="28" fill="hsl(36 76% 91% / 0.84)" />
+        <ellipse cx="228" cy="190" rx="64" ry="22" fill="hsl(35 88% 82% / 0.34)" />
+        <ellipse cx="130" cy="220" rx="40" ry="18" fill="hsl(28 82% 84% / 0.26)" />
+        <ellipse cx="292" cy="232" rx="46" ry="20" fill="hsl(88 34% 78% / 0.28)" />
+        <ellipse cx="290" cy="150" rx="40" ry="40" fill="hsl(90 40% 76% / 0.3)" />
+        <ellipse cx="164" cy="278" rx="88" ry="32" fill="hsl(28 72% 84% / 0.16)" />
       </g>
-      <g stroke="hsl(18 14% 20%)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M172 62c24-9 52-9 80 0" />
-        <path d="M167 65c-6 39-6 81-1 125" />
-        <path d="M257 64c5 41 5 82 0 125" />
-        <path d="M187 83c15-3 32-3 47 0" />
-        <path d="M211 66v121M237 66v121" />
-        <path d="M166 187c24 5 64 5 91 0" />
-        <path d="M144 169c29-16 78-16 109 0" />
-        <path d="M156 184c28-4 59-3 89 0" />
-        <path d="M209 216c16-4 33-4 46 0" />
-        <path d="M209 219c2 12 18 20 33 20 13 0 25-6 28-17" />
-        <path d="M233 239v58" />
-        <path d="M233 297l-18 24M233 297l18 24M233 297v28" />
-        <path d="M102 243c11-10 26-12 40-3 9 7 13 18 10 29" />
-        <path d="M112 248l-25 39M142 247l24 36" />
-        <path d="M100 287c15 5 32 5 47 0" />
-        <path d="M111 244c6-4 15-6 25-5" />
-        <path d="M271 143c17 8 29 22 38 44" />
-        <path d="M262 134c17 1 31 8 43 20" />
-        <path d="M271 166c14 4 26 14 36 30" />
-        <path d="M287 133c1 48-2 96-10 145" />
-        <path d="M277 278c10 6 21 6 33 0" />
-        <path d="M280 278c-6 19-7 39-3 59" />
-        <path d="M309 278c5 19 6 39 4 59" />
-        <path d="M188 229c-4-13-2-27 6-37" />
-        <path d="M252 229c4-11 4-23-1-34" />
-        <path d="M215 316h36" />
+      <g stroke="hsl(19 16% 20%)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M193 62c18-8 48-10 70-4" />
+        <path d="M189 64c-4 30-4 66 0 102" />
+        <path d="M271 62c5 35 4 70-1 103" />
+        <path d="M208 80h43M210 118h40" />
+        <path d="M228 62v103M250 62v103" />
+        <path d="M189 165c22 4 57 4 82 0" />
+        <path d="M111 242c16-11 34-14 53-8" />
+        <path d="M117 248c-5 20-4 41 4 63" />
+        <path d="M162 242c10 17 15 38 14 61" />
+        <path d="M126 278c11 5 23 6 36 2" />
+        <path d="M211 204c17-6 36-6 54-1" />
+        <path d="M213 206c2 14 15 24 31 24 14 0 27-7 31-18" />
+        <path d="M241 230v56" />
+        <path d="M241 286l-19 29M241 286l18 29M241 286v32" />
+        <path d="M200 186c11-10 25-16 41-18" />
+        <path d="M264 187c8 4 14 10 18 18" />
+        <path d="M278 133c11 8 21 20 28 35" />
+        <path d="M270 125c13 2 26 8 38 19" />
+        <path d="M278 157c10 5 19 13 28 25" />
+        <path d="M286 124c0 40-1 81-5 122" />
+        <path d="M279 246c11 6 23 7 34 2" />
+        <path d="M283 247c-6 18-8 36-6 54" />
+        <path d="M312 247c2 18 3 36 1 53" />
+        <path d="M242 316h33" />
+        <path d="M135 184c17 0 32 8 46 22" />
+        <path d="M148 184c-8 19-10 37-7 55" />
+        <path d="M172 206c7 9 10 20 9 33" />
       </g>
-      <g fill="hsl(87 40% 66% / 0.9)" stroke="hsl(18 14% 20%)" strokeWidth="1.1">
-        <path d="M284 142c10-13 22-22 36-28-6 15-16 25-29 35" />
-        <path d="M299 160c16-9 31-13 46-14-10 12-24 18-40 22" />
-        <path d="M286 176c-12-12-22-23-29-37 14 7 25 18 34 31" />
-        <path d="M306 193c14-2 28 0 41 7-13 5-27 5-40 0" />
-        <path d="M287 208c-11 3-22 9-32 17 12 2 24 0 36-7" />
+      <g fill="hsl(88 36% 69% / 0.95)" stroke="hsl(19 16% 20%)" strokeWidth="1.15">
+        <path d="M283 134c10-14 23-23 37-28-6 15-18 28-31 35" />
+        <path d="M299 155c16-8 32-11 48-10-12 11-26 18-42 20" />
+        <path d="M286 170c-11-12-20-23-27-36 14 7 25 18 33 31" />
+        <path d="M304 189c15-1 29 2 42 9-13 4-27 4-40-1" />
+        <path d="M286 204c-12 3-22 9-31 18 12 2 23-1 35-8" />
       </g>
-      <g stroke="hsl(18 14% 20%)" strokeWidth="1.3" fill="hsl(31 96% 84% / 0.8)">
-        <path d="M241 189c7-2 14-1 19 0 1 8-2 14-9 18-6-2-10-8-10-18z" />
+      <g fill="hsl(31 90% 82% / 0.8)" stroke="hsl(19 16% 20%)" strokeWidth="1.2">
+        <path d="M249 178c8-2 15-1 20 1 0 7-4 13-10 16-7-2-10-8-10-17z" />
+        <path d="M211 196c7-2 15-2 21 0 0 7-3 12-11 15-7-2-10-7-10-15z" />
       </g>
     </svg>
   );
@@ -164,39 +167,39 @@ function ParkIllustration() {
     <svg viewBox="0 0 300 380" className="h-full w-full" aria-hidden="true">
       <defs>
         <filter id="park-wash" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="10" />
+          <feGaussianBlur stdDeviation="14" />
         </filter>
       </defs>
-      <g filter="url(#park-wash)" opacity="0.88">
-        <ellipse cx="130" cy="112" rx="82" ry="48" fill="hsl(87 64% 84% / 0.76)" />
-        <ellipse cx="162" cy="126" rx="70" ry="40" fill="hsl(83 72% 82% / 0.56)" />
-        <ellipse cx="132" cy="314" rx="64" ry="18" fill="hsl(33 72% 80% / 0.22)" />
+      <g filter="url(#park-wash)" opacity="0.92">
+        <ellipse cx="128" cy="110" rx="88" ry="52" fill="hsl(88 52% 82% / 0.84)" />
+        <ellipse cx="168" cy="126" rx="76" ry="44" fill="hsl(92 42% 80% / 0.72)" />
+        <ellipse cx="118" cy="142" rx="66" ry="34" fill="hsl(95 50% 86% / 0.5)" />
+        <ellipse cx="130" cy="315" rx="70" ry="20" fill="hsl(34 70% 80% / 0.2)" />
       </g>
-      <g stroke="hsl(18 14% 20%)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M132 307c-4-55 2-104 18-150" />
-        <path d="M149 159c18 34 30 84 35 148" />
-        <path d="M149 159c-17-21-38-37-67-51" />
-        <path d="M150 162c23-24 49-39 82-47" />
-        <path d="M145 137c-10-24-22-43-43-59" />
-        <path d="M152 136c19-23 42-38 69-47" />
-        <path d="M63 148c28-22 59-33 95-34" />
-        <path d="M79 112c26-18 56-27 92-24" />
-        <path d="M105 88c20-9 39-12 60-10" />
-        <path d="M182 95c24 2 45 8 62 18" />
-        <path d="M204 124c18 5 34 14 48 28" />
-        <path d="M214 156c14 7 27 17 37 31" />
-        <path d="M85 292h75" />
-        <path d="M78 305h88" />
-        <path d="M87 292c-8 11-10 24-10 38" />
-        <path d="M160 292c7 12 10 25 10 38" />
-        <path d="M82 330c24 5 57 5 92 0" />
-        <path d="M92 292l-9 17M154 292l11 17" />
-        <path d="M86 294c17-6 39-6 58 0" />
+      <g stroke="hsl(19 16% 20%)" strokeWidth="2.15" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M136 307c-5-51 0-98 15-144" />
+        <path d="M151 163c18 33 30 81 34 144" />
+        <path d="M150 164c-18-23-40-39-67-50" />
+        <path d="M150 165c24-24 51-39 84-46" />
+        <path d="M144 142c-10-24-22-43-42-62" />
+        <path d="M151 142c18-24 42-41 72-52" />
+        <path d="M63 151c31-23 63-35 98-36" />
+        <path d="M76 118c31-19 63-28 96-27" />
+        <path d="M99 95c23-11 46-14 70-11" />
+        <path d="M182 95c24 3 47 10 66 22" />
+        <path d="M205 126c19 6 35 16 47 30" />
+        <path d="M214 159c14 8 26 18 36 31" />
+        <path d="M82 296h82" />
+        <path d="M74 308h96" />
+        <path d="M84 296c-6 11-9 23-8 35" />
+        <path d="M162 296c8 10 11 22 11 35" />
+        <path d="M83 331c27 4 58 4 92 0" />
+        <path d="M95 296l-10 16M155 296l11 16" />
       </g>
-      <g fill="hsl(33 62% 72% / 0.85)" stroke="hsl(18 14% 20%)" strokeWidth="1.8" strokeLinejoin="round">
-        <path d="M84 286h75l-5 14H90z" />
-        <path d="M90 300h63v9H90z" />
-        <path d="M91 309v28M151 309v28" />
+      <g fill="hsl(32 58% 72% / 0.9)" stroke="hsl(19 16% 20%)" strokeWidth="1.75" strokeLinejoin="round">
+        <path d="M85 289h76l-5 13H91z" />
+        <path d="M91 302h65v9H91z" />
+        <path d="M93 311v24M153 311v24" />
       </g>
     </svg>
   );
@@ -207,41 +210,40 @@ function BookstoreIllustration() {
     <svg viewBox="0 0 300 300" className="h-full w-full" aria-hidden="true">
       <defs>
         <filter id="book-wash" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="8" />
+          <feGaussianBlur stdDeviation="10" />
         </filter>
       </defs>
-      <g filter="url(#book-wash)" opacity="0.86">
-        <rect x="84" y="56" width="72" height="184" rx="24" fill="hsl(192 44% 84% / 0.62)" />
-        <rect x="194" y="56" width="63" height="184" rx="22" fill="hsl(191 42% 86% / 0.54)" />
-        <path d="M132 72c25-9 53-7 76 8 7 58 5 112-6 165-28-10-50-32-66-67-13-28-16-67-4-106z" fill="hsl(34 92% 82% / 0.34)" />
-        <ellipse cx="176" cy="86" rx="36" ry="18" fill="hsl(35 90% 79% / 0.56)" />
+      <g filter="url(#book-wash)" opacity="0.92">
+        <rect x="70" y="46" width="74" height="200" rx="20" fill="hsl(190 35% 84% / 0.82)" />
+        <rect x="196" y="44" width="70" height="202" rx="20" fill="hsl(195 38% 86% / 0.7)" />
+        <path d="M130 66c31-20 67-18 103 7 6 59 2 115-15 166-29-10-52-30-68-61-14-28-21-66-20-112z" fill="hsl(34 84% 82% / 0.34)" />
+        <ellipse cx="180" cy="82" rx="38" ry="18" fill="hsl(35 88% 80% / 0.55)" />
       </g>
-      <g stroke="hsl(18 14% 20%)" strokeWidth="2.05" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M84 63c20-10 44-13 72-8" />
-        <path d="M86 64c-5 55-5 111-1 168" />
-        <path d="M156 56c6 53 7 109 2 169" />
-        <path d="M196 63c16-5 34-6 54-3" />
-        <path d="M196 63c0 56 4 112 11 168" />
-        <path d="M250 61c5 50 5 107 1 170" />
-        <path d="M118 64c7 71 7 141-1 210" />
-        <path d="M128 84h25M128 105h25M128 126h25M128 147h25M128 168h25" />
-        <path d="M94 86h16M94 107h16M94 128h16M94 149h16M94 170h16" />
-        <path d="M208 84h18M208 105h18M208 126h18M208 147h18M208 168h18M208 189h18" />
-        <path d="M221 65v164" />
-        <path d="M149 79c13-5 29-5 42 0" />
-        <path d="M147 80c14 17 23 38 28 64" />
-        <path d="M140 181c13-3 28-2 42 3" />
-        <path d="M139 182c7 28 10 55 8 82" />
-        <path d="M97 127l-12 81" />
-        <path d="M87 140c7 8 16 12 27 13" />
-        <path d="M173 184c11 9 19 20 24 35" />
-        <path d="M155 254c13 2 26 1 38-4" />
-        <path d="M179 248c4 10 8 19 10 30" />
-        <path d="M148 277c14 2 29 2 44 0" />
+      <g stroke="hsl(19 16% 20%)" strokeWidth="2.05" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M71 51c21-9 47-12 73-8" />
+        <path d="M72 52c-4 58-3 117 2 177" />
+        <path d="M145 44c4 61 4 121-1 181" />
+        <path d="M197 49c17-5 39-6 67-1" />
+        <path d="M198 49c0 58 4 117 10 177" />
+        <path d="M263 49c4 57 4 117 0 178" />
+        <path d="M108 60v173M120 76h15M120 98h15M120 120h15M120 142h15M120 164h15M120 186h15" />
+        <path d="M84 80h15M84 102h15M84 124h15M84 146h15M84 168h15M84 190h15" />
+        <path d="M223 66v159M205 79h15M205 101h15M205 123h15M205 145h15M205 167h15M205 189h15" />
+        <path d="M236 79h15M236 101h15M236 123h15M236 145h15M236 167h15M236 189h15" />
+        <path d="M145 75c18-6 36-4 54 5" />
+        <path d="M144 76c19 21 32 46 37 76" />
+        <path d="M136 176c18-3 36-2 54 4" />
+        <path d="M136 176c10 24 13 49 11 73" />
+        <path d="M95 119l-11 82" />
+        <path d="M84 134c8 9 18 13 30 14" />
+        <path d="M179 178c10 9 19 21 25 37" />
+        <path d="M158 246c14 2 28 1 42-5" />
+        <path d="M181 241c4 9 8 19 10 30" />
+        <path d="M150 271c14 2 30 2 45 0" />
       </g>
-      <g fill="hsl(31 92% 80% / 0.72)" stroke="none">
-        <ellipse cx="176" cy="84" rx="28" ry="13" />
-        <ellipse cx="149" cy="248" rx="18" ry="8" />
+      <g fill="hsl(31 88% 79% / 0.72)" stroke="none">
+        <ellipse cx="180" cy="82" rx="29" ry="13" />
+        <ellipse cx="152" cy="245" rx="20" ry="8" />
       </g>
     </svg>
   );
