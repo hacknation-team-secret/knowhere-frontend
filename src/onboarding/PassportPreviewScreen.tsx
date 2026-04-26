@@ -32,7 +32,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
   const heroImage = heroImageFromState(state);
   const miniNote = buildMiniNote(state);
   const routeMood = buildRouteMood(state);
-  const rightColumnChips = chips.slice(0, 4);
+  const rightColumnChips = chips.slice(0, 2);
 
   return (
     <section>
@@ -95,7 +95,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                     Travel read
                   </div>
                   <p className="mt-2 font-serif text-[24px] leading-[1.02] text-white md:text-[28px]">
-                    {truncate(styleSummary, 42)}
+                    {truncate(styleSummary, 28)}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     {visualWords.map((word) => (
@@ -171,7 +171,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                   <div className="text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
                     Editorial note
                   </div>
-                  <p className="mt-3 max-w-[15ch] font-serif text-[24px] leading-[1.02] text-ink">
+                  <p className="mt-3 max-w-[12ch] font-serif text-[22px] leading-[1.02] text-ink">
                     {miniNote}
                   </p>
                 </div>
@@ -182,7 +182,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                   </div>
                   <div className="mt-3 space-y-2">
                     {routeMood.map((line) => (
-                      <p key={line} className="text-sm text-ink-soft">
+                      <p key={line} className="text-sm leading-tight text-ink-soft">
                         {line}
                       </p>
                     ))}
@@ -259,9 +259,9 @@ function buildVisualWords(state: PassportState): string[] {
     ...(state.picks.vibes ?? []),
     ...(state.picks.interests ?? []),
   ]
-    .map((item) => item.replace(/\s+/g, " ").trim())
+    .map((item) => compactWord(item.replace(/\s+/g, " ").trim()))
     .filter(Boolean);
-  return Array.from(new Set(words)).map(shortLabel).slice(0, 3);
+  return Array.from(new Set(words)).slice(0, 2);
 }
 
 function buildEditorialWords(state: PassportState): string[] {
@@ -272,8 +272,8 @@ function buildEditorialWords(state: PassportState): string[] {
     state.profile?.pace,
   ]
     .filter(Boolean)
-    .map((item) => shortLabel(String(item)))
-    .slice(0, 3);
+    .map((item) => compactWord(shortLabel(String(item))))
+    .slice(0, 2);
 }
 
 function buildMiniNote(state: PassportState) {
@@ -282,23 +282,23 @@ function buildMiniNote(state: PassportState) {
   const topPull = state.profile?.pulls?.[0];
 
   if (topVibe && topInterest) {
-    return `${capitalize(topVibe)} days, ${topInterest} nights.`;
+    return `${capitalize(compactWord(topVibe))} energy.`;
   }
   if (topPull) {
-    return `${capitalize(shortLabel(topPull))}, lightly stamped.`;
+    return `${capitalize(compactWord(topPull))}.`;
   }
-  return "A soft edit for the next city.";
+  return "Soft launch.";
 }
 
 function buildRouteMood(state: PassportState) {
-  const pace = shortLabel(state.profile?.pace || "easy glide");
-  const mobility = shortLabel(state.picks.mobility || "mixed");
-  const budget = shortLabel(state.picks.budget || "medium");
+  const pace = compactWord(shortLabel(state.profile?.pace || "easy glide"));
+  const mobility = compactWord(shortLabel(state.picks.mobility || "mixed"));
+  const budget = compactWord(shortLabel(state.picks.budget || "medium"));
 
   return [
     `${heroEmojiFromState(state)} ${capitalize(pace)}`,
-    `Moves by ${mobility}`,
-    `Leans ${budget}`,
+    `By ${mobility}`,
+    `${capitalize(budget)} spend`,
   ];
 }
 
@@ -347,9 +347,23 @@ function shortLabel(value: string) {
     .replace(/\b(poolside settings?)\b/gi, "poolside")
     .replace(/\b(strong visual identity)\b/gi, "visuals")
     .replace(/\bhighly structured but designed to feel relaxed\b/gi, "structured ease")
+    .replace(/\byachts?\b/gi, "yachts")
+    .replace(/\bbeach clubs?\b/gi, "beach clubs")
+    .replace(/\bexclusivity\b/gi, "privacy")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 24);
+    .slice(0, 18);
+}
+
+function compactWord(value: string) {
+  return value
+    .replace(/^private stays.*$/i, "private stays")
+    .replace(/^dining.*$/i, "dining")
+    .replace(/^beach clubs.*$/i, "beach clubs")
+    .replace(/^structured ease.*$/i, "structured ease")
+    .replace(/^mixed.*$/i, "mixed")
+    .replace(/^medium.*$/i, "medium")
+    .trim();
 }
 
 function capitalize(value: string) {
