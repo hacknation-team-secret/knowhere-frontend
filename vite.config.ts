@@ -8,6 +8,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api": {
+        target:
+          process.env.VITE_PROXY_TARGET ??
+          "https://secret-backend-production-7b55.up.railway.app",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
     hmr: {
       overlay: false,
     },
