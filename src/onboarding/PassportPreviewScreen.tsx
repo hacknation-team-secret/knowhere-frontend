@@ -32,7 +32,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
   const heroImage = heroImageFromState(state);
   const miniNote = buildMiniNote(state);
   const routeMood = buildRouteMood(state);
-  const rightColumnChips = chips.slice(0, 2);
+  const rightColumnChips = chips.slice(0, 1);
 
   return (
     <section>
@@ -95,7 +95,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                     Travel read
                   </div>
                   <p className="mt-2 font-serif text-[24px] leading-[1.02] text-white md:text-[28px]">
-                    {truncate(styleSummary, 28)}
+                    {truncate(styleSummary, 22)}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-1.5">
                     {visualWords.map((word) => (
@@ -261,7 +261,7 @@ function buildVisualWords(state: PassportState): string[] {
   ]
     .map((item) => compactWord(item.replace(/\s+/g, " ").trim()))
     .filter(Boolean);
-  return Array.from(new Set(words)).slice(0, 2);
+  return Array.from(new Set(words)).slice(0, 1);
 }
 
 function buildEditorialWords(state: PassportState): string[] {
@@ -273,21 +273,23 @@ function buildEditorialWords(state: PassportState): string[] {
   ]
     .filter(Boolean)
     .map((item) => compactWord(shortLabel(String(item))))
-    .slice(0, 2);
+    .slice(0, 1);
 }
 
 function buildMiniNote(state: PassportState) {
   const topVibe = state.picks.vibes[0];
   const topInterest = state.picks.interests[0];
-  const topPull = state.profile?.pulls?.[0];
 
   if (topVibe && topInterest) {
-    return `${capitalize(compactWord(topVibe))} energy.`;
+    return `${capitalize(compactWord(topVibe))} edit.`;
   }
-  if (topPull) {
-    return `${capitalize(compactWord(topPull))}.`;
+  if (topVibe) {
+    return `${capitalize(compactWord(topVibe))} edit.`;
   }
-  return "Soft launch.";
+  if (topInterest) {
+    return `${capitalize(compactWord(topInterest))} edit.`;
+  }
+  return "Soft edit.";
 }
 
 function buildRouteMood(state: PassportState) {
@@ -297,8 +299,7 @@ function buildRouteMood(state: PassportState) {
 
   return [
     `${heroEmojiFromState(state)} ${capitalize(pace)}`,
-    `By ${mobility}`,
-    `${capitalize(budget)} spend`,
+    `${capitalize(mobility)} · ${budget}`,
   ];
 }
 
@@ -361,6 +362,7 @@ function compactWord(value: string) {
     .replace(/^dining.*$/i, "dining")
     .replace(/^beach clubs.*$/i, "beach clubs")
     .replace(/^structured ease.*$/i, "structured ease")
+    .replace(/^visuals.*$/i, "visuals")
     .replace(/^mixed.*$/i, "mixed")
     .replace(/^medium.*$/i, "medium")
     .trim();
