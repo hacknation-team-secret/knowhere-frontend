@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import {
-  ArrowRightLeft,
   CreditCard,
   Loader2,
   PiggyBank,
@@ -11,7 +10,6 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 import { api } from "@/cityApp/lib/apiAdapter";
 import { useApp } from "@/cityApp/CityShell";
@@ -265,13 +263,6 @@ export default function SharedWallets() {
               <Users />
               Join with code
             </Button>
-            <Link
-              to="/app/research"
-              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
-            >
-              <ArrowRightLeft className="h-3.5 w-3.5" />
-              City Guide
-            </Link>
           </div>
         </div>
 
@@ -741,4 +732,3 @@ function parseMoneyToCents(value: string) {
 function formatMoneyInput(amountCents: number) {
   return (amountCents / 100).toFixed(2).replace(/\.00$/, "");
 }
-

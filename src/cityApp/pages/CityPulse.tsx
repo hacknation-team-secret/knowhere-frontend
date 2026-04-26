@@ -4,11 +4,10 @@
 
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, Cloud, CloudRain, Compass, Heart, MapPin, Snowflake, Sparkles, Sun, Timer } from "lucide-react";
+import { Cloud, CloudRain, Compass, Heart, MapPin, Snowflake, Sparkles, Sun, Timer } from "lucide-react";
 import { useApp } from "@/cityApp/CityShell";
 import { InteractiveBostonMap } from "@/cityApp/components/InteractiveBostonMap";
 import { EditableChip } from "@/cityApp/components/EditableChip";
-import { AskKnowhere } from "@/cityApp/components/AskKnowhere";
 import { CityPicker } from "@/cityApp/components/CityPicker";
 import { CityExplorer } from "@/cityApp/components/CityExplorer";
 import { NEIGHBORHOODS, placeById } from "@/cityApp/lib/boston";
@@ -25,7 +24,6 @@ import {
 } from "@/cityApp/lib/context";
 import type { Detour, Neighborhood } from "@/cityApp/lib/types";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
 
 const NEIGHBORHOOD_NAMES = NEIGHBORHOODS.map((n) => n.name) as Neighborhood[];
 
@@ -244,28 +242,6 @@ export default function CityPulse() {
       {/* Cross-city picks moved into the header city switcher. */}
 
 
-      {/* Ask Knowhere */}
-      <AskKnowhere
-        baseDetour={primaryDetour}
-        onResult={(d) => navigate(`/app/detour/${d.id}`, { state: { detour: d } })}
-      />
-
-      {/* City Guide CTA */}
-      <Link
-        to="/app/research"
-        className="flex items-center justify-between rounded-3xl border border-line bg-paper-soft p-6 shadow-sm hover:border-stamp/40 transition-colors group"
-      >
-        <div className="flex gap-4 items-center">
-          <div className="h-12 w-12 rounded-full bg-stamp/10 text-stamp flex items-center justify-center shrink-0">
-            <Bot className="h-6 w-6" />
-          </div>
-          <div>
-            <h3 className="font-serif text-lg text-ink">Plan with City Guide</h3>
-            <p className="text-sm text-ink-soft">Coordinate groups, shared favorites, budgets, and next stops.</p>
-          </div>
-        </div>
-        <Sparkles className="h-5 w-5 text-gold opacity-0 group-hover:opacity-100 transition-opacity" />
-      </Link>
     </div>
   );
 }

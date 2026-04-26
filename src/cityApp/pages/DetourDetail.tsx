@@ -7,7 +7,6 @@ import { ArrowLeft, Bike, Footprints, MapPin, Sparkles, Check, Gift } from "luci
 import { useApp } from "@/cityApp/CityShell";
 import { InteractiveBostonMap } from "@/cityApp/components/InteractiveBostonMap";
 
-import { AskKnowhere } from "@/cityApp/components/AskKnowhere";
 import { perkById, placeById, stationById } from "@/cityApp/lib/boston";
 import type { Detour } from "@/cityApp/lib/types";
 import { cn } from "@/lib/utils";
@@ -210,12 +209,6 @@ export default function DetourDetail() {
           In your Passport · View
         </button>
       )}
-
-      {/* Refine */}
-      <AskKnowhere
-        baseDetour={detour}
-        onResult={(d) => navigate(`/detour/${d.id}`, { state: { detour: d } })}
-      />
 
       {/* Perks summary */}
       {perks.length > 0 && (
