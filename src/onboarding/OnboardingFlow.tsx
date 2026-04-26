@@ -184,6 +184,7 @@ export function OnboardingFlow() {
           }}
         />
       )}
+
       {screen === "preview" && (
         <PassportPreviewScreen
           state={state}

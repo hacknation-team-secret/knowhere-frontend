@@ -27,16 +27,18 @@ export function PasteScreen({
   onUseProfile,
 }: Props) {
   const [pasted, setPasted] = useState("");
-  const [preview, setPreview] = useState<ParsedProfile | null>(null);
   const [instagram, setInstagram] = useState(initialInstagram ?? "");
   const [tiktok, setTiktok] = useState(initialTiktok ?? "");
 
-  const handlePreview = () => {
+  const handleContinue = () => {
     if (!pasted.trim()) return;
-    setPreview(parseProfile(pasted));
+    onUseProfile(parseProfile(pasted), {
+      instagram: normalize(instagram, "https://instagram.com/"),
+      tiktok: normalize(tiktok, "https://tiktok.com/@"),
+    });
   };
 
-  const canPreview = pasted.trim().length > 30 && !preview;
+  const canContinue = pasted.trim().length > 30;
 
   return (
     <section>
@@ -55,7 +57,6 @@ export function PasteScreen({
           value={pasted}
           onChange={(e) => {
             setPasted(e.target.value);
-            if (preview) setPreview(null);
           }}
           placeholder="KNOWHERE PASSPORT PROFILE…"
           rows={10}
@@ -88,33 +89,18 @@ export function PasteScreen({
         </p>
       </div>
 
-      {preview && <ProfilePreview profile={preview} />}
-
-      {preview ? (
-        <Actions
-          primary={{
-            label: "Use this profile",
-            onClick: () =>
-              onUseProfile(preview, {
-                instagram: normalize(instagram, "https://instagram.com/"),
-                tiktok: normalize(tiktok, "https://tiktok.com/@"),
-              }),
-          }}
-        />
-      ) : (
-        <Actions
-          primary={{
-            label: "Preview profile",
-            onClick: handlePreview,
-            disabled: !canPreview,
-          }}
-          helper={
-            !canPreview
-              ? "Paste your profile above to preview it."
-              : undefined
-          }
-        />
-      )}
+      <Actions
+        primary={{
+          label: "Create my passport",
+          onClick: handleContinue,
+          disabled: !canContinue,
+        }}
+        helper={
+          !canContinue
+            ? "Paste your profile above to continue."
+            : "We’ll turn this into a visual passport next."
+        }
+      />
     </section>
   );
 }
@@ -168,58 +154,4 @@ function TiktokGlyph() {
       <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
     </svg>
   );
-}
-
-function ProfilePreview({ profile }: { profile: ParsedProfile }) {
-  const rows: Array<[string, string, string | string[] | undefined]> = [
-    ["Travel style", "🧭", profile.travelStyle],
-    ["Pulls", "✨", profile.pulls],
-    ["Pushes", "🚫", profile.pushes],
-    ["Pace", "⏱️", profile.pace],
-    ["Best detour", "📍", profile.bestDetour],
-    ["Confidence", "🔎", profile.confidence],
-  ];
-  const filled = rows.filter(([, , v]) => (Array.isArray(v) ? v.length : !!v));
-  const isEmpty = filled.length === 0;
-
-  return (
-    <div className="paper-card-lift mt-6 p-6 md:p-7 animate-fade-up">
-      <div className="text-[10.5px] tracking-[0.2em] uppercase text-coral mb-4">
-        Parsed
-      </div>
-      {isEmpty ? (
-        <p className="text-[14px] text-ink-soft leading-relaxed">
-          We couldn't find the section headers — paste the full profile starting with{" "}
-          <span className="font-mono text-[12.5px] text-ink">KNOWHERE PASSPORT PROFILE</span>.
-        </p>
-      ) : (
-        <dl className="grid md:grid-cols-2 gap-3">
-          {filled.map(([label, emoji, value]) => (
-            <div key={label} className="rounded-[18px] border border-line/70 bg-paper-soft/70 p-4">
-              <dt className="flex items-center gap-2 text-[10.5px] tracking-[0.18em] uppercase text-ink-soft mb-2">
-                <span className="text-[14px] not-italic leading-none">{emoji}</span>
-                {label}
-              </dt>
-              <dd className="text-[13.5px] text-ink leading-[1.45]">
-                {Array.isArray(value) ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {value.slice(0, 4).map((v, i) => (
-                      <span key={i} className="chip">{v}</span>
-                    ))}
-                  </div>
-                ) : (
-                  <p>{truncate(value, 90)}</p>
-                )}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </div>
-  );
-}
-
-function truncate(value: string, max: number) {
-  if (value.length <= max) return value;
-  return `${value.slice(0, max).trim()}…`;
 }
