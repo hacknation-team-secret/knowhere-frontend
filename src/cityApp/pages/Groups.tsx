@@ -1,28 +1,30 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { DollarSign, Heart, Loader2, Sparkles, UserPlus, Users } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  CheckCircle2,
+  CircleDashed,
+  DollarSign,
+  Heart,
+  Loader2,
+  Sparkles,
+  UserPlus,
+  Users,
+} from "lucide-react";
 
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
+import { useResearchAgent } from "@/components/ResearchAgent";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import type { ApiCityGuidePlanResponse, ApiGroup, ApiGroupBudget, ApiGroupFavorite, ApiPublicUser } from "@/lib/api";
-
-const WIZARD_STEPS = [
-  { id: "group", label: "Group" },
-  { id: "budget", label: "Budget" },
-  { id: "guide", label: "City Guide" },
-] as const;
-
-const RUNNING_STEPS = [
-  { phase: "planner", title: "Reading passports", detail: "Collecting member tastes, favorites, prior detours, budget, and Boston context." },
-  { phase: "executor", title: "Choosing stops", detail: "Using event tools to assemble a concrete route instead of chatting." },
-  { phase: "verifier", title: "Checking the route", detail: "Verifying the plan has real stops and budget-aware rationale before saving." },
-];
+import type { Profile } from "@/cityApp/lib/types";
+import type { ApiGroup, ApiGroupBudget, ApiGroupFavorite, ApiPassport, ApiPublicUser } from "@/lib/api";
 
 export default function Groups() {
-  const { auth } = useApp();
+  const { auth, profile } = useApp();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { sendMessage } = useResearchAgent();
   const [users, setUsers] = useState<ApiPublicUser[]>([]);
   const [groups, setGroups] = useState<ApiGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<number | undefined>();
@@ -41,9 +43,7 @@ export default function Groups() {
   const [budgetAmount, setBudgetAmount] = useState("");
   const [budgetNotes, setBudgetNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [wizardStep, setWizardStep] = useState<"group" | "budget" | "guide">("group");
-  const [guideLoading, setGuideLoading] = useState(false);
-  const [guidePlan, setGuidePlan] = useState<ApiCityGuidePlanResponse | null>(null);
+  const inviteSectionRef = useRef<HTMLDivElement | null>(null);
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId);
   const selectedMembership = selectedGroup?.memberships.find(
@@ -51,10 +51,11 @@ export default function Groups() {
   );
   const canUseSelectedGroup = !!selectedGroup && selectedMembership?.status === "accepted";
   const invitableUsers = users.filter(
-    (user) => !selectedGroup?.memberships.some((membership) => membership.user.id === user.id),
+    (user) =>
+      user.id !== auth.user?.id &&
+      !selectedGroup?.memberships.some((membership) => membership.user.id === user.id),
   );
-  const visibleUsers = users
-    .filter((user) => user.id !== auth.user?.id)
+  const visibleInvitees = invitableUsers
     .filter((user) => {
       const query = userQuery.trim().toLowerCase();
       if (!query) return true;
@@ -63,9 +64,11 @@ export default function Groups() {
         .some((value) => value!.toLowerCase().includes(query));
     })
     .slice(0, 8);
-  const recommendedInvitees = invitableUsers.slice(0, 3);
   const acceptedMemberCount = selectedGroup?.memberships.filter(
     (membership) => membership.status === "accepted",
+  ).length ?? 0;
+  const invitedMemberCount = selectedGroup?.memberships.filter(
+    (membership) => membership.status === "pending",
   ).length ?? 0;
   const averageBudget = budgets.length
     ? budgets.reduce((sum, budget) => sum + budget.total_budget, 0) / budgets.length
@@ -73,6 +76,10 @@ export default function Groups() {
   const favoriteCostTotal = favorites
     .filter((favorite) => favorite.voted_by_me)
     .reduce((sum, favorite) => sum + (favorite.estimated_cost ?? 0), 0);
+  const myBudget = budgets.find((budget) => budget.user.id === auth.user?.id);
+  const hasSavedBudget = !!myBudget;
+  const hasGroup = !!selectedGroup;
+  const hasFavorites = favorites.length > 0;
 
   useEffect(() => {
     if (!auth.user) return;
@@ -113,9 +120,9 @@ export default function Groups() {
         if (cancelled) return;
         setFavorites(nextFavorites);
         setBudgets(nextBudgets);
-        const myBudget = nextBudgets.find((budget) => budget.user.id === auth.user?.id);
-        setBudgetAmount(myBudget ? String(myBudget.total_budget) : "");
-        setBudgetNotes(myBudget?.notes ?? "");
+        const mine = nextBudgets.find((budget) => budget.user.id === auth.user?.id);
+        setBudgetAmount(mine ? String(mine.total_budget) : "");
+        setBudgetNotes(mine?.notes ?? "");
       } catch (e) {
         if (!cancelled) setError((e as Error).message);
       }
@@ -134,7 +141,6 @@ export default function Groups() {
       const group = await api.createGroup(groupName.trim(), groupDescription.trim() || undefined);
       setGroups((prev) => [group, ...prev]);
       setSelectedGroupId(group.id);
-      setWizardStep("budget");
       toast({ title: "Group created", description: "Invite platform users to plan together." });
     } catch (e) {
       toast({ title: "Group failed", description: (e as Error).message, variant: "destructive" });
@@ -164,7 +170,7 @@ export default function Groups() {
       const group = await api.acceptGroupInvite(groupId);
       setGroups((prev) => prev.map((item) => (item.id === group.id ? group : item)));
       setSelectedGroupId(group.id);
-      toast({ title: "Joined group", description: "City Guide can now plan with this group." });
+      toast({ title: "Joined group", description: "Group Guide can now plan with this group." });
     } catch (e) {
       toast({ title: "Join failed", description: (e as Error).message, variant: "destructive" });
     } finally {
@@ -238,38 +244,10 @@ export default function Groups() {
     }
   };
 
-  const createGuidedGroup = async () => {
-    if (!groupName.trim()) return;
+  const confirmBudgetAndLaunchCityGuide = async () => {
+    if (!selectedGroup || !budgetAmount) return;
     setGroupLoading(true);
     setError(null);
-    try {
-      const group = await api.createGroup(groupName.trim(), groupDescription.trim() || undefined);
-      setGroups((prev) => [group, ...prev]);
-      setSelectedGroupId(group.id);
-
-      for (const user of recommendedInvitees) {
-        const updated = await api.inviteToGroup(group.id, user.username);
-        setGroups((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
-      }
-
-      toast({
-        title: "Group created",
-        description: "City Guide will use these invited members to shape the route.",
-      });
-      setWizardStep("budget");
-    } catch (e) {
-      toast({ title: "Group failed", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setGroupLoading(false);
-    }
-  };
-
-  const confirmBudgetAndRunCityGuide = async () => {
-    if (!selectedGroup || !budgetAmount) return;
-    setGuideLoading(true);
-    setError(null);
-    setGuidePlan(null);
-    setWizardStep("guide");
     try {
       const budget = await api.upsertGroupBudget(selectedGroup.id, {
         total_budget: Number(budgetAmount),
@@ -280,18 +258,58 @@ export default function Groups() {
         const exists = prev.some((item) => item.user.id === budget.user.id);
         return exists ? prev.map((item) => (item.user.id === budget.user.id ? budget : item)) : [...prev, budget];
       });
-      const plan = await api.createCityGuidePlan(selectedGroup.id);
-      setGuidePlan(plan);
+
+      const nextGroup =
+        (await api.listGroups()).find((item) => item.id === selectedGroup.id) ?? selectedGroup;
+      const guidePrompt = await buildCityGuidePrompt({
+        group: nextGroup,
+        profile,
+        budget,
+      });
+      await sendMessage(guidePrompt, nextGroup.id);
+      navigate("/app/research");
       toast({
-        title: "City Guide finished",
-        description: "A proposed group detour is ready to review.",
+        title: "Group Guide started",
+        description: "The shared research thread now has passports, budget, and location.",
       });
     } catch (e) {
       toast({ title: "Planning failed", description: (e as Error).message, variant: "destructive" });
     } finally {
-      setGuideLoading(false);
+      setGroupLoading(false);
     }
   };
+
+  const heroAction = !hasGroup
+    ? {
+        label: "Create group",
+        onClick: () => void createGroup(),
+        disabled: groupLoading || !groupName.trim(),
+      }
+    : !canUseSelectedGroup && selectedGroup
+      ? {
+          label: "Join group",
+          onClick: () => void acceptInvite(selectedGroup.id),
+          disabled: groupLoading,
+        }
+      : !hasSavedBudget
+        ? {
+            label: "Save budget",
+            onClick: () => void saveBudget(),
+            disabled: groupLoading || !budgetAmount,
+          }
+        : {
+            label: "Open Group Guide",
+            onClick: () => void confirmBudgetAndLaunchCityGuide(),
+            disabled: groupLoading || !selectedGroup || !budgetAmount,
+          };
+
+  const checklist = [
+    { label: "Create group", done: hasGroup },
+    { label: "Invite friends", done: invitedMemberCount + acceptedMemberCount > 1 },
+    { label: "Add favorites", done: hasFavorites },
+    { label: "Set budget", done: hasSavedBudget },
+    { label: "Open Group Guide", done: hasSavedBudget },
+  ];
 
   if (!auth.user) {
     return (
@@ -302,505 +320,460 @@ export default function Groups() {
   }
 
   return (
-    <div className="mx-auto space-y-6 max-w-6xl">
-      <section className="rounded-[2rem] border border-stamp/30 bg-gradient-to-br from-stamp/10 to-paper p-5 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">Happy path</p>
-            <h2 className="mt-1 font-serif text-2xl text-ink">Create the group, confirm budget, then start City Guide.</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-              City Guide runs once with the context already collected, creates a detour, and shows the final proposal here.
-            </p>
+    <div className="mx-auto max-w-6xl space-y-5">
+      <section className="rounded-[2rem] border border-line bg-gradient-to-br from-paper via-paper-soft to-stamp/10 p-5 shadow-sm">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stamp">Group Passport</p>
+              <h1 className="mt-1 font-serif text-[30px] leading-none text-ink">{selectedGroup?.name ?? "Weekend crew"}</h1>
+              <p className="mt-2 max-w-2xl text-sm text-ink-soft">
+                Plan a Boston Detour that fits everyone&apos;s taste, budget, and pace.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <StatusChip>{acceptedMemberCount} accepted</StatusChip>
+              <StatusChip>{invitedMemberCount} invited</StatusChip>
+              <StatusChip tone={hasSavedBudget ? "done" : "pending"}>
+                {hasSavedBudget ? "Budget saved" : "Budget pending"}
+              </StatusChip>
+              <StatusChip tone={hasFavorites ? "done" : "pending"}>
+                {hasFavorites ? `${favorites.length} favorites` : "Favorites empty"}
+              </StatusChip>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          <div className="flex flex-wrap gap-2 lg:justify-end">
             <button
               type="button"
-              onClick={() => void createGuidedGroup()}
-              disabled={groupLoading || !groupName.trim()}
-              className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
+              onClick={heroAction.onClick}
+              disabled={heroAction.disabled}
+              className="inline-flex items-center gap-2 rounded-full bg-ocean-deep px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-sm disabled:opacity-50"
             >
-              {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-              Create group + invite
+              {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {heroAction.label}
             </button>
             <button
               type="button"
-              onClick={() => void confirmBudgetAndRunCityGuide()}
-              disabled={guideLoading || !selectedGroup || !budgetAmount}
-              className="inline-flex items-center gap-2 rounded-full border border-stamp/30 bg-stamp/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp disabled:opacity-50"
+              onClick={() => inviteSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
+              disabled={!selectedGroup || !canUseSelectedGroup}
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-ink-soft disabled:opacity-50"
             >
-              {guideLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              Run City Guide
+              <UserPlus className="h-4 w-4" />
+              Invite friends
             </button>
           </div>
-        </div>
-
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
-          {WIZARD_STEPS.map((step, index) => {
-            const active = wizardStep === step.id;
-            const complete = WIZARD_STEPS.findIndex((item) => item.id === wizardStep) > index || (step.id === "guide" && !!guidePlan);
-            return (
-              <div
-                key={step.id}
-                className={cn(
-                  "rounded-2xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em]",
-                  active || complete ? "border-stamp/30 bg-stamp/10 text-stamp" : "border-line bg-card text-ink-soft",
-                )}
-              >
-                {index + 1}. {step.label}
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {recommendedInvitees.length > 0 ? (
-            recommendedInvitees.map((user) => (
-              <span
-                key={user.id}
-                className="rounded-full border border-line bg-card px-3 py-1 text-xs font-medium text-ink-soft"
-              >
-                Invite @{user.username}
-              </span>
-            ))
-          ) : (
-            <span className="text-xs text-ink-soft">No additional invite recommendations right now.</span>
-          )}
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-      <aside className="space-y-4 rounded-[2rem] border border-line bg-card p-5 shadow-sm h-fit">
-        <div className="flex items-center gap-2 text-ink">
-          <Users className="h-5 w-5 text-stamp" strokeWidth={2} />
-          <h2 className="font-serif text-xl">Trip Groups</h2>
-        </div>
-        <p className="text-sm text-ink-soft">
-          Create a trip group here, invite the right people, then hand it to City Guide.
-        </p>
-
-        <div className="space-y-2 rounded-2xl border border-line bg-paper p-4">
-          <input
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            className="h-10 w-full rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-            placeholder="Group name"
-          />
-          <textarea
-            value={groupDescription}
-            onChange={(e) => setGroupDescription(e.target.value)}
-            className="min-h-20 w-full rounded-xl border border-line bg-card px-3 py-2 text-sm focus:border-stamp focus:outline-none"
-            placeholder="Trip goals, dates, constraints"
-          />
-            <button
-              type="button"
-              onClick={createGroup}
-              disabled={groupLoading || !groupName.trim()}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+      <section className="rounded-[1.6rem] border border-line bg-card p-4 shadow-sm">
+        <div className="flex flex-wrap gap-3">
+          {checklist.map((step) => (
+            <div
+              key={step.label}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium",
+                step.done ? "border-ocean/30 bg-ocean/10 text-ocean-deep" : "border-line bg-paper text-ink-soft",
+              )}
             >
-              {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-              Create Group
-            </button>
+              {step.done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <CircleDashed className="h-3.5 w-3.5" />}
+              {step.label}
+            </div>
+          ))}
         </div>
+      </section>
 
-        {groups.length > 0 && (
-          <div className="space-y-2">
-            <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Active group</label>
-            <select
-              value={selectedGroupId ?? ""}
-              onChange={(e) => setSelectedGroupId(Number(e.target.value) || undefined)}
-              className="h-10 w-full rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-            >
-              {groups.map((group) => (
-                <option key={group.id} value={group.id}>
-                  {group.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+      <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="space-y-5">
+          {error && <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
-        <div className="space-y-2">
-          {groups.map((group) => {
-            const membership = group.memberships.find((item) => item.user.id === auth.user?.id);
-            const accepted = group.memberships.filter((item) => item.status === "accepted").length;
-            return (
+          <section className="rounded-[2rem] border border-line bg-card p-5 shadow-sm">
+            <div className="flex items-center gap-2 text-ink">
+              <Users className="h-5 w-5 text-stamp" strokeWidth={2} />
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Group setup</p>
+                <h2 className="font-serif text-2xl text-ink">Group Passport</h2>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Group name</span>
+                <input
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                  placeholder="Weekend crew"
+                />
+              </label>
+              <label className="space-y-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Active group</span>
+                <select
+                  value={selectedGroupId ?? ""}
+                  onChange={(e) => setSelectedGroupId(Number(e.target.value) || undefined)}
+                  className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                >
+                  <option value="">Select a group</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="mt-4 block space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Short description</span>
+              <textarea
+                value={groupDescription}
+                onChange={(e) => setGroupDescription(e.target.value)}
+                className="min-h-24 w-full rounded-xl border border-line bg-paper px-3 py-2.5 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Food, culture, pace, must-dos"
+              />
+            </label>
+
+            <div className="mt-4 flex flex-wrap gap-2">
               <button
-                key={group.id}
                 type="button"
-                onClick={() => setSelectedGroupId(group.id)}
-                className={cn(
-                  "w-full rounded-2xl border p-3 text-left transition-colors",
-                  selectedGroupId === group.id ? "border-ocean/40 bg-ocean/10" : "border-line bg-paper hover:border-ocean/30",
-                )}
+                onClick={() => void createGroup()}
+                disabled={groupLoading || !groupName.trim()}
+                className="inline-flex items-center gap-2 rounded-full bg-ocean-deep px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-ink">{group.name}</p>
-                    {group.description && <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft">{group.description}</p>}
-                  </div>
-                  <span className="shrink-0 rounded-full bg-card px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
-                    {membership?.status ?? "view"}
-                  </span>
+                {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                Create group
+              </button>
+              {selectedGroup?.memberships.some((item) => item.user.id === auth.user?.id && item.status === "pending") && (
+                <button
+                  type="button"
+                  onClick={() => void acceptInvite(selectedGroup.id)}
+                  disabled={groupLoading}
+                  className="inline-flex items-center gap-2 rounded-full border border-stamp/30 bg-stamp/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-stamp disabled:opacity-50"
+                >
+                  Join group
+                </button>
+              )}
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Members</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedGroup?.memberships.length ? (
+                    selectedGroup.memberships.map((membership) => (
+                      <span
+                        key={membership.user.id}
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-xs",
+                          membership.status === "accepted" ? "border-stamp/30 bg-stamp/10 text-stamp" : "border-line bg-paper text-ink-soft",
+                        )}
+                      >
+                        @{membership.user.username}
+                        {membership.status === "pending" ? " · pending" : ""}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-sm text-ink-soft">Create or pick a group to start inviting people.</p>
+                  )}
+                </div>
+              </div>
+
+              <div ref={inviteSectionRef} className="rounded-[1.5rem] border border-line bg-paper p-4">
+                <div className="flex flex-col gap-3 md:flex-row">
+                  <input
+                    value={userQuery}
+                    onChange={(e) => setUserQuery(e.target.value)}
+                    className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
+                    placeholder="Search people"
+                  />
+                  <select
+                    value={inviteUsername}
+                    onChange={(e) => setInviteUsername(e.target.value)}
+                    className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
+                  >
+                    <option value="">Invite username</option>
+                    {visibleInvitees.map((user) => (
+                      <option key={user.id} value={user.username}>
+                        @{user.username}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void inviteUserToSelected(inviteUsername)}
+                    disabled={groupLoading || !inviteUsername || !canUseSelectedGroup}
+                    className="inline-flex h-11 items-center justify-center rounded-xl border border-stamp/30 bg-stamp px-4 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    Invite
+                  </button>
                 </div>
                 <p className="mt-2 text-xs text-ink-soft">
-                  {accepted} accepted member{accepted === 1 ? "" : "s"}
+                  {visibleInvitees.length > 0
+                    ? "Invite friends from Knowhere into this shared passport."
+                    : "No matching invite options right now."}
                 </p>
-              </button>
-            );
-          })}
+              </div>
+            </div>
+          </section>
         </div>
 
-        <Link
-          to="/app/research"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-paper px-3 py-2 text-sm font-semibold text-stamp hover:opacity-80"
-        >
-          Open City Guide
-        </Link>
-      </aside>
-
-      <div className="space-y-6">
-        {error && <div className="rounded-2xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
-
-        <section className="rounded-[2rem] border border-line bg-card p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Group details</p>
-              <h3 className="mt-1 font-serif text-2xl text-ink">{selectedGroup?.name ?? "Select a group"}</h3>
-              <p className="mt-1 text-sm text-ink-soft">{selectedGroup?.description ?? "Choose a group to manage members and budget."}</p>
-            </div>
-            {selectedGroup?.memberships.some((item) => item.user.id === auth.user?.id && item.status === "pending") && (
-              <button
-                type="button"
-                onClick={() => void acceptInvite(selectedGroup.id)}
-                className="rounded-full bg-stamp px-3 py-1 text-xs font-semibold text-white"
-              >
-                Join
-              </button>
-            )}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {selectedGroup?.memberships.map((membership) => (
-              <span
-                key={membership.user.id}
-                className={cn(
-                  "rounded-full border px-2.5 py-1 text-xs",
-                  membership.status === "accepted" ? "border-stamp/30 bg-stamp/10 text-stamp" : "border-line bg-card text-ink-soft",
-                )}
-              >
-                @{membership.user.username} {membership.status === "pending" ? "(pending)" : ""}
+        <div className="space-y-5">
+          <section className="rounded-[2rem] border border-line bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Heart className="h-4 w-4 text-stamp" />
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Trip context</p>
+                  <h3 className="text-sm font-semibold text-ink">Favorites</h3>
+                </div>
+              </div>
+              <span className="rounded-full border border-line bg-paper px-2.5 py-1 text-[11px] text-ink-soft">
+                {favorites.length} saved
               </span>
-            ))}
-          </div>
-
-          {canUseSelectedGroup && invitableUsers.length > 0 && (
-            <div className="mt-4 flex gap-2">
-              <select
-                value={inviteUsername}
-                onChange={(e) => setInviteUsername(e.target.value)}
-                className="h-10 min-w-0 flex-1 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-              >
-                <option value="">Invite user</option>
-                {invitableUsers.map((user) => (
-                  <option key={user.id} value={user.username}>
-                    @{user.username}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => void inviteUserToSelected(inviteUsername)}
-                disabled={groupLoading || !inviteUsername}
-                className="rounded-xl bg-stamp px-3 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                Invite
-              </button>
             </div>
-          )}
-        </section>
 
-        {canUseSelectedGroup && (
-          <div className="grid gap-6 xl:grid-cols-2">
-            <section className="space-y-3 rounded-[2rem] border border-line bg-card p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-stamp" />
-                  <h4 className="text-sm font-semibold text-ink">Favorites</h4>
-                </div>
-                <span className="text-xs text-ink-soft">{favorites.length} ideas</span>
-              </div>
+            {!canUseSelectedGroup && (
+              <p className="mt-4 text-sm text-ink-soft">Accept or select a group to start adding favorites.</p>
+            )}
 
-              <div className="space-y-2">
+            <div className="mt-4 space-y-3">
+              <input
+                value={favoriteTitle}
+                onChange={(e) => setFavoriteTitle(e.target.value)}
+                className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Favorite place or idea"
+              />
+              <input
+                value={favoriteDescription}
+                onChange={(e) => setFavoriteDescription(e.target.value)}
+                className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Why it matters"
+              />
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <input
-                  value={favoriteTitle}
-                  onChange={(e) => setFavoriteTitle(e.target.value)}
-                  className="h-10 w-full rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-                  placeholder="Add restaurant, museum, hike..."
+                  value={favoriteCost}
+                  onChange={(e) => setFavoriteCost(e.target.value)}
+                  className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none sm:max-w-[140px]"
+                  inputMode="decimal"
+                  placeholder="Cost / person"
                 />
-                <div className="grid grid-cols-[1fr_96px] gap-2">
-                  <input
-                    value={favoriteDescription}
-                    onChange={(e) => setFavoriteDescription(e.target.value)}
-                    className="h-10 min-w-0 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-                    placeholder="Why should it make the plan?"
-                  />
-                  <input
-                    value={favoriteCost}
-                    onChange={(e) => setFavoriteCost(e.target.value)}
-                    className="h-10 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-                    inputMode="decimal"
-                    placeholder="$/pp"
-                  />
-                </div>
-              <button
-                type="button"
-                onClick={addFavorite}
-                disabled={groupLoading || !favoriteTitle.trim()}
-                className="w-full rounded-xl border border-stamp/30 bg-stamp/10 px-3 py-2 text-sm font-semibold text-stamp disabled:opacity-50"
-              >
-                Add and Vote
-              </button>
+                <button
+                  type="button"
+                  onClick={() => void addFavorite()}
+                  disabled={groupLoading || !favoriteTitle.trim() || !canUseSelectedGroup}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-stamp/30 bg-stamp/10 px-4 text-sm font-semibold text-stamp disabled:opacity-50"
+                >
+                  Add favorite
+                </button>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                {favorites.map((favorite) => (
+            <div className="mt-4 space-y-2">
+              {favorites.length === 0 ? (
+                <div className="rounded-[1.5rem] border border-dashed border-line bg-paper p-4 text-sm text-ink-soft">
+                  Add a restaurant, museum, walk, or must-do stop.
+                </div>
+              ) : (
+                favorites.map((favorite) => (
                   <button
                     key={favorite.id}
                     type="button"
                     onClick={() => void toggleFavoriteVote(favorite.id)}
                     className={cn(
-                      "w-full rounded-2xl border p-3 text-left transition-colors",
-                      favorite.voted_by_me ? "border-stamp/40 bg-stamp/10" : "border-line bg-card hover:border-stamp/30",
+                      "flex w-full items-center justify-between gap-3 rounded-[1.25rem] border px-4 py-3 text-left transition-colors",
+                      favorite.voted_by_me ? "border-stamp/40 bg-stamp/10" : "border-line bg-paper hover:border-stamp/30",
                     )}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-ink">{favorite.title}</p>
-                        {favorite.description && <p className="mt-0.5 text-xs text-ink-soft">{favorite.description}</p>}
-                      </div>
-                      <span className="shrink-0 rounded-full bg-card px-2 py-1 text-xs font-semibold text-stamp">
-                        {favorite.vote_count} vote{favorite.vote_count === 1 ? "" : "s"}
-                      </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-ink">{favorite.title}</p>
+                      <p className="mt-0.5 truncate text-xs text-ink-soft">
+                        {favorite.description || "Tap to vote this into the plan."}
+                      </p>
                     </div>
-                    {favorite.estimated_cost != null && (
-                      <p className="mt-2 text-xs text-ink-soft">Est. ${favorite.estimated_cost.toFixed(0)} per person</p>
-                    )}
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs font-semibold text-stamp">
+                        {favorite.vote_count} vote{favorite.vote_count === 1 ? "" : "s"}
+                      </p>
+                      {favorite.estimated_cost != null && (
+                        <p className="text-[11px] text-ink-soft">${favorite.estimated_cost.toFixed(0)}/pp</p>
+                      )}
+                    </div>
                   </button>
-                ))}
-              </div>
-            </section>
+                ))
+              )}
+            </div>
+          </section>
 
-            <section className="space-y-3 rounded-[2rem] border border-line bg-card p-5 shadow-sm">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-ocean-deep" />
-                <h4 className="text-sm font-semibold text-ink">Budget</h4>
+          <section className="rounded-[2rem] border border-line bg-card p-5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-ocean-deep" />
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Trip context</p>
+                <h3 className="text-sm font-semibold text-ink">Budget</h3>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-xl border border-line bg-card p-3">
-                  <p className="uppercase tracking-[0.14em] text-ink-soft">Avg / person</p>
-                  <p className="mt-1 font-serif text-xl text-ink">${averageBudget.toFixed(0)}</p>
-                </div>
-                <div className="rounded-xl border border-line bg-card p-3">
-                  <p className="uppercase tracking-[0.14em] text-ink-soft">My voted cost</p>
-                  <p className="mt-1 font-serif text-xl text-ink">${favoriteCostTotal.toFixed(0)}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-[112px_1fr] gap-2">
-                <input
-                  value={budgetAmount}
-                  onChange={(e) => setBudgetAmount(e.target.value)}
-                  className="h-10 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-                  inputMode="decimal"
-                  placeholder="Budget"
-                />
-                <input
-                  value={budgetNotes}
-                  onChange={(e) => setBudgetNotes(e.target.value)}
-                  className="h-10 min-w-0 rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-                  placeholder="Notes: meals, transit, splurge..."
-                />
-              </div>
+            </div>
+
+            {!canUseSelectedGroup && (
+              <p className="mt-4 text-sm text-ink-soft">Pick an accepted group to save a shared budget.</p>
+            )}
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <MetricCard label="Avg / person" value={`$${averageBudget.toFixed(0)}`} />
+              <MetricCard label="My vote" value={`$${favoriteCostTotal.toFixed(0)}`} />
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-[160px_1fr]">
+              <input
+                value={budgetAmount}
+                onChange={(e) => setBudgetAmount(e.target.value)}
+                className="h-11 rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                inputMode="decimal"
+                placeholder="Budget / person"
+              />
+              <input
+                value={budgetNotes}
+                onChange={(e) => setBudgetNotes(e.target.value)}
+                className="h-11 min-w-0 rounded-xl border border-line bg-paper px-3 text-sm focus:border-stamp focus:outline-none"
+                placeholder="Notes"
+              />
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
-                onClick={saveBudget}
-                disabled={groupLoading || !budgetAmount}
-                className="w-full rounded-xl bg-ocean-deep px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                onClick={() => void saveBudget()}
+                disabled={groupLoading || !budgetAmount || !canUseSelectedGroup}
+                className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-ocean-deep px-4 text-sm font-semibold text-white disabled:opacity-50"
               >
-                Save Budget
+                Save budget
               </button>
               <button
                 type="button"
-                onClick={() => void confirmBudgetAndRunCityGuide()}
-                disabled={guideLoading || !selectedGroup || !budgetAmount}
-                className="w-full rounded-xl border border-stamp/30 bg-stamp/10 px-3 py-2 text-sm font-semibold text-stamp disabled:opacity-50"
+                onClick={() => void confirmBudgetAndLaunchCityGuide()}
+                disabled={groupLoading || !selectedGroup || !budgetAmount || !canUseSelectedGroup}
+                className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-stamp/30 bg-stamp/10 px-4 text-sm font-semibold text-stamp disabled:opacity-50"
               >
-                {guideLoading ? "City Guide is planning..." : "Confirm budget and run City Guide"}
+                {hasSavedBudget ? "Open Group Guide" : "Confirm budget"}
               </button>
-              {budgets.length > 0 && (
-                <div className="space-y-1 text-xs text-ink-soft">
+            </div>
+
+            {budgets.length > 0 && (
+              <div className="mt-4 rounded-[1.5rem] border border-line bg-paper p-4">
+                <div className="space-y-1.5">
                   {budgets.map((budget) => (
-                    <p key={budget.user.id}>
-                      @{budget.user.username}: {budget.currency} {budget.total_budget.toFixed(0)}
-                      {budget.notes ? `, ${budget.notes}` : ""}
+                    <p key={budget.user.id} className="text-sm text-ink-soft">
+                      <span className="font-medium text-ink">@{budget.user.username}</span>: {budget.currency} {budget.total_budget.toFixed(0)}
+                      {budget.notes ? ` · ${budget.notes}` : ""}
                     </p>
                   ))}
                 </div>
-              )}
-              <p className="text-xs text-ink-soft">
-                {acceptedMemberCount} accepted member{acceptedMemberCount === 1 ? "" : "s"}; City Guide will use the shared context.
-              </p>
-            </section>
-          </div>
-        )}
-
-        <CityGuideResult plan={guidePlan} loading={guideLoading} />
-
-        <section className="rounded-[2rem] border border-line bg-card p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Users</p>
-              <p className="mt-1 text-xs text-ink-soft">Search users on Knowhere and invite them into the active trip group.</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-card px-2 py-1 text-xs font-semibold text-ink-soft">
-              {Math.max(users.length - 1, 0)} users
-            </span>
-          </div>
-
-          <input
-            value={userQuery}
-            onChange={(e) => setUserQuery(e.target.value)}
-            className="mt-4 h-10 w-full rounded-xl border border-line bg-card px-3 text-sm focus:border-stamp focus:outline-none"
-            placeholder="Search username, email, taste notes"
-          />
-
-          <div className="mt-3 space-y-2">
-            {visibleUsers.length > 0 ? (
-              visibleUsers.map((user) => {
-                const membership = selectedGroup?.memberships.find((item) => item.user.id === user.id);
-                const canInvite = !!selectedGroup && selectedMembership?.status === "accepted" && !membership;
-                return (
-                  <div key={user.id} className="rounded-2xl border border-line bg-card p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-ink">@{user.username}</p>
-                        {user.description && <p className="mt-0.5 line-clamp-2 text-xs text-ink-soft">{user.description}</p>}
-                      </div>
-                      {canInvite ? (
-                        <button
-                          type="button"
-                          onClick={() => void inviteUserToSelected(user.username)}
-                          disabled={groupLoading}
-                          className="shrink-0 rounded-full bg-stamp px-3 py-1 text-xs font-semibold text-white disabled:opacity-50"
-                        >
-                          Invite
-                        </button>
-                      ) : (
-                        <span className="shrink-0 rounded-full bg-paper px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-soft">
-                          {membership?.status ?? "select group"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="rounded-xl border border-dashed border-line p-3 text-xs text-ink-soft">No matching users found.</p>
+              </div>
             )}
-          </div>
-        </section>
 
-        <div className="flex gap-2">
-          <Link
-            to="/app/research"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
-          >
-            City Guide
-          </Link>
-          <Link
-            to="/app/wallets/shared"
-            className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
-          >
-            <DollarSign className="h-3.5 w-3.5" />
-            Shared wallet
-          </Link>
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-[1.5rem] border border-line bg-paper p-4">
+              <div>
+                <p className="text-sm font-semibold text-ink">Ready for the shared brief</p>
+                <p className="text-xs text-ink-soft">
+                  {acceptedMemberCount} accepted and {invitedMemberCount} invited.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void confirmBudgetAndLaunchCityGuide()}
+                disabled={groupLoading || !selectedGroup || !budgetAmount || !canUseSelectedGroup}
+                className="inline-flex items-center gap-2 rounded-full bg-ocean-deep px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
+              >
+                Open Group Guide
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                to="/app/wallets/shared"
+                className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-ink-soft hover:opacity-80"
+              >
+                <DollarSign className="h-3.5 w-3.5" />
+                Shared wallet
+              </Link>
+            </div>
+          </section>
         </div>
-      </div>
       </div>
     </div>
   );
 }
 
-function CityGuideResult({
-  plan,
-  loading,
+async function buildCityGuidePrompt({
+  group,
+  profile,
+  budget,
 }: {
-  plan: ApiCityGuidePlanResponse | null;
-  loading: boolean;
+  group: ApiGroup;
+  profile: Profile | null;
+  budget: ApiGroupBudget;
+}): Promise<string> {
+  const passportSummaries = await Promise.all(
+    group.memberships.map(async ({ user, status }) => {
+      try {
+        const passport = await api.passport(user.username);
+        return `@${user.username} (${status}): ${summarizePassport(passport)}`;
+      } catch {
+        return `@${user.username} (${status}): passport unavailable`;
+      }
+    }),
+  );
+
+  const location = profile?.startingLocation || "Boston";
+  const interests = profile?.interests.length ? profile.interests.join(", ") : "not yet set";
+  const vibe = profile?.vibe || "local";
+  const mobility = profile?.mobility || "mixed";
+  const userBudget = `${budget.currency} ${budget.total_budget.toFixed(0)}`;
+
+  return [
+    "You are Group Guide, the personal research agent for this Boston group.",
+    `Build a detour from ${location} that keeps the whole group within ${userBudget}.`,
+    `Use the current user's passport profile: vibe=${vibe}, mobility=${mobility}, interests=${interests}.`,
+    `Group context: ${group.name}${group.description ? ` — ${group.description}` : ""}.`,
+    "Use the member passport summaries below to find overlap, location fit, and a realistic route.",
+    ...passportSummaries,
+    "Respond with the best shared detour, not just research notes.",
+  ].join("\n");
+}
+
+function summarizePassport(passport: ApiPassport) {
+  const events = passport.attended_events.slice(0, 4).map((event) => event.title);
+  const details = events.length ? events.join(", ") : "no attended events yet";
+  const description = passport.description?.trim();
+  return `${description ? `${description}. ` : ""}${details}`;
+}
+
+function StatusChip({
+  children,
+  tone = "default",
+}: {
+  children: ReactNode;
+  tone?: "default" | "done" | "pending";
 }) {
-  if (!loading && !plan) return null;
-
-  const steps = plan?.steps ?? RUNNING_STEPS;
-
   return (
-    <section className="rounded-[2rem] border border-stamp/30 bg-card p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stamp">City Guide</p>
-          <h3 className="mt-1 font-serif text-2xl text-ink">
-            {loading ? "Building the group detour" : "Final proposed detour"}
-          </h3>
-          <p className="mt-1 text-sm text-ink-soft">
-            One backend planner run, using passports, accepted members, favorites, budget, and Boston events.
-          </p>
-        </div>
-        {loading && <Loader2 className="h-5 w-5 animate-spin text-stamp" />}
-      </div>
-
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
-        {steps.map((step) => (
-          <div key={`${step.phase}-${step.title}`} className="rounded-2xl border border-line bg-paper p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-stamp">{step.phase}</p>
-            <p className="mt-1 text-sm font-semibold text-ink">{step.title}</p>
-            <p className="mt-1 text-xs leading-relaxed text-ink-soft">{step.detail}</p>
-          </div>
-        ))}
-      </div>
-
-      {plan && (
-        <div className="mt-5 rounded-3xl border border-line bg-paper-soft p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">Saved detour #{plan.detour.id}</p>
-              <h4 className="mt-1 font-serif text-2xl text-ink">{plan.detour.name}</h4>
-              {plan.detour.description && (
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">{plan.detour.description}</p>
-              )}
-            </div>
-            <span className="rounded-full bg-stamp/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-stamp">
-              {plan.detour.events.length} stops
-            </span>
-          </div>
-
-          <ol className="mt-4 space-y-2">
-            {plan.detour.events
-              .slice()
-              .sort((a, b) => a.order - b.order)
-              .map(({ event, order }) => (
-                <li key={event.id} className="rounded-2xl border border-line bg-card p-3">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stamp/10 font-serif text-sm text-stamp">
-                      {order + 1}
-                    </span>
-                    <div>
-                      <p className="font-serif text-lg leading-tight text-ink">{event.title}</p>
-                      {event.description && <p className="mt-1 text-sm leading-relaxed text-ink-soft">{event.description}</p>}
-                    </div>
-                  </div>
-                </li>
-              ))}
-          </ol>
-        </div>
+    <span
+      className={cn(
+        "rounded-full border px-3 py-1.5 text-xs font-medium",
+        tone === "done" && "border-ocean/30 bg-ocean/10 text-ocean-deep",
+        tone === "pending" && "border-stamp/20 bg-paper text-ink-soft",
+        tone === "default" && "border-line bg-card text-ink-soft",
       )}
-    </section>
+    >
+      {children}
+    </span>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[1.25rem] border border-line bg-paper p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-soft">{label}</p>
+      <p className="mt-1 font-serif text-2xl text-ink">{value}</p>
+    </div>
   );
 }
