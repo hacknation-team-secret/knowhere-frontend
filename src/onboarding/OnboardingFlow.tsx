@@ -47,6 +47,7 @@ export function OnboardingFlow() {
   const [state, setState] = useState<PassportState>(DEFAULT_STATE);
   const [screen, setScreen] = useState<Screen>("welcome");
   const [path, setPath] = useState<"profile" | "picks">("profile");
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signup");
   const navigate = useNavigate();
 
   const order = path === "picks" ? ORDER_PICKS : ORDER_PROFILE;
@@ -114,10 +115,12 @@ export function OnboardingFlow() {
         <WelcomeScreen
           onNext={() => {
             setPath("profile");
+            setAuthMode("signup");
             goTo("name");
           }}
           onSignIn={() => {
             setPath("profile");
+            setAuthMode("signin");
             goTo("auth");
           }}
         />
@@ -128,6 +131,7 @@ export function OnboardingFlow() {
           initialName={state.name}
           onContinue={(name) => {
             setState((s) => ({ ...s, name }));
+            setAuthMode("signup");
             goTo("auth");
           }}
         />
@@ -168,6 +172,7 @@ export function OnboardingFlow() {
       {screen === "auth" && (
         <AuthScreen
           initialUsername={state.name?.toLowerCase().replace(/[^a-z0-9_]/g, "")}
+          initialMode={authMode}
           onAuthed={(user, token) => {
             const auth: AuthInfo = {
               username: user.username,

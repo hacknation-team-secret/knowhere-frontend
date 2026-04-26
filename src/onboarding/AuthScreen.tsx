@@ -7,18 +7,24 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   initialUsername?: string;
+  initialMode?: "signin" | "signup";
   onAuthed: (user: ApiUser, token: string) => void;
   onSkip?: () => void;
 }
 
-export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
+export function AuthScreen({
+  initialUsername,
+  initialMode = "signup",
+  onAuthed,
+  onSkip,
+}: Props) {
   const { signIn, signUp } = useAuth();
   const [username, setUsername] = useState(initialUsername ?? "");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"signin" | "signup">("signup");
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
 
   const submit = async () => {
     if (!username.trim() || password.length < 4) {
@@ -57,36 +63,27 @@ export function AuthScreen({ initialUsername, onAuthed, onSkip }: Props) {
           : "Set up a new Passport so your stamps know where to land."}
       </p>
 
-      <div className="mb-8 flex gap-2">
-        <button
-          type="button"
+      <p className="mb-8 text-[13px] text-ink-soft">
+        {mode === "signin" ? "Need a passport instead?" : "Already have an account?"}{" "}
+        <span
+          role="button"
+          tabIndex={0}
           onClick={() => {
-            setMode("signin");
+            setMode(mode === "signin" ? "signup" : "signin");
             setError(null);
           }}
-          className={`rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors ${
-            mode === "signin"
-              ? "border-ink bg-ink text-paper"
-              : "border-line bg-transparent text-ink-soft hover:text-ink"
-          }`}
-        >
-          Sign in
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode("signup");
-            setError(null);
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setMode(mode === "signin" ? "signup" : "signin");
+              setError(null);
+            }
           }}
-          className={`rounded-full border px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors ${
-            mode === "signup"
-              ? "border-ink bg-ink text-paper"
-              : "border-line bg-transparent text-ink-soft hover:text-ink"
-          }`}
+          className="cursor-pointer font-medium text-ink underline underline-offset-4"
         >
-          Create account
-        </button>
-      </div>
+          {mode === "signin" ? "Create account" : "Sign in"}
+        </span>
+      </p>
 
       <Field label="Username">
         <div className="paper-card flex items-center gap-3 px-5 py-3.5">
