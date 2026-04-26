@@ -3,7 +3,18 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { api, getToken, setToken, type ApiUser } from "@/lib/api";
+import {
+  ApiError,
+  api,
+  clearDemoSession,
+  createDemoUser,
+  enableDemoSession,
+  getDemoUser,
+  getToken,
+  isDemoToken,
+  setToken,
+  type ApiUser,
+} from "@/lib/api";
 
 export interface AuthState {
   user: ApiUser | null;
@@ -20,6 +31,11 @@ export interface AuthContextValue extends AuthState {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function shouldUseDemoFallback(error: unknown) {
+  if (error instanceof ApiError) return error.status >= 500;
+  return error instanceof TypeError || (error instanceof Error && error.message === "Failed to fetch");
+}
+
 function useAuthState(): AuthContextValue {
   const [state, setState] = useState<AuthState>({
     user: null,
@@ -28,7 +44,18 @@ function useAuthState(): AuthContextValue {
   });
 
   const refresh = useCallback(async () => {
-    if (!getToken()) {
+    const token = getToken();
+    if (!token) {
+      setState({ user: null, loading: false, error: null });
+      return null;
+    }
+    if (isDemoToken(token)) {
+      const demoUser = getDemoUser();
+      if (demoUser) {
+        setState({ user: demoUser, loading: false, error: null });
+        return demoUser;
+      }
+      setToken(null);
       setState({ user: null, loading: false, error: null });
       return null;
     }
@@ -56,6 +83,11 @@ function useAuthState(): AuthContextValue {
         setState({ user: me, loading: false, error: null });
         return me;
       } catch (e) {
+        if (shouldUseDemoFallback(e)) {
+          const demoUser = enableDemoSession(createDemoUser(username));
+          setState({ user: demoUser, loading: false, error: null });
+          return demoUser;
+        }
         const msg = (e as Error).message || "Login failed";
         setState({ user: null, loading: false, error: msg });
         throw e;
@@ -74,6 +106,11 @@ function useAuthState(): AuthContextValue {
         setState({ user: me, loading: false, error: null });
         return me;
       } catch (e) {
+        if (shouldUseDemoFallback(e)) {
+          const demoUser = enableDemoSession(createDemoUser(username, email));
+          setState({ user: demoUser, loading: false, error: null });
+          return demoUser;
+        }
         const msg = (e as Error).message || "Signup failed";
         setState({ user: null, loading: false, error: msg });
         throw e;
@@ -84,6 +121,7 @@ function useAuthState(): AuthContextValue {
 
   const signOut = useCallback(() => {
     api.logout();
+    clearDemoSession();
     setState({ user: null, loading: false, error: null });
   }, []);
 

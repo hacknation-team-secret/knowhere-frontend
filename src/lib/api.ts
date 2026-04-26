@@ -4,6 +4,8 @@
 export const API_BASE =
   import.meta.env.VITE_API_BASE ?? "/api";
 const TOKEN_KEY = "knowhere.token.v1";
+const DEMO_USER_KEY = "knowhere.demo-user.v1";
+const DEMO_TOKEN_PREFIX = "demo:";
 
 export function getToken(): string | null {
   try {
@@ -20,6 +22,10 @@ export function setToken(token: string | null) {
   } catch {
     /* ignore */
   }
+}
+
+export function isDemoToken(token: string | null) {
+  return !!token && token.startsWith(DEMO_TOKEN_PREFIX);
 }
 
 export class ApiError extends Error {
@@ -81,6 +87,49 @@ export interface ApiUser {
   api_key: string;
   description?: string | null;
   research_count: number;
+}
+
+export function createDemoUser(username: string, email?: string | null): ApiUser {
+  return {
+    id: Date.now(),
+    username,
+    email: email ?? null,
+    is_admin: false,
+    api_key: "demo-mode",
+    description: "Demo mode",
+    research_count: 0,
+  };
+}
+
+export function getDemoUser(): ApiUser | null {
+  try {
+    const raw = localStorage.getItem(DEMO_USER_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as ApiUser;
+  } catch {
+    return null;
+  }
+}
+
+export function setDemoUser(user: ApiUser | null) {
+  try {
+    if (user) localStorage.setItem(DEMO_USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(DEMO_USER_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function enableDemoSession(user: ApiUser) {
+  setDemoUser(user);
+  setToken(`${DEMO_TOKEN_PREFIX}${user.id}`);
+  return user;
+}
+
+export function clearDemoSession() {
+  setDemoUser(null);
+  const token = getToken();
+  if (isDemoToken(token)) setToken(null);
 }
 
 export interface ApiEvent {
