@@ -1,7 +1,8 @@
 // Knowhere backend client.
 // Hosted FastAPI at Railway. OAuth2 password flow, bearer token in localStorage.
 
-export const API_BASE = "https://secret-backend-production-7b55.up.railway.app";
+export const API_BASE =
+  import.meta.env.VITE_API_BASE ?? "https://secret-backend-production-7b55.up.railway.app";
 const TOKEN_KEY = "knowhere.token.v1";
 
 export function getToken(): string | null {

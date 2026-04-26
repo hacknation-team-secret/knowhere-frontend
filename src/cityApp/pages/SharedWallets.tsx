@@ -421,7 +421,7 @@ export default function SharedWallets() {
                 <h2 className="font-serif text-2xl text-ink">Budget controls</h2>
               </div>
               <div className="mt-4 grid gap-3">
-                <Field label="Spending limit" value={walletLimit} onChange={setWalletLimit} inputMode="decimal" placeholder="600.00" />
+                <Field label="Spending limit" value={walletLimit} onChange={setWalletLimit} inputMode="decimal" placeholder="$600.00" money />
                 <Field label="Alert threshold (%)" value={walletThreshold} onChange={setWalletThreshold} inputMode="numeric" />
                 <Button variant="outline" onClick={handleSaveControls}>
                   Save controls
@@ -495,7 +495,7 @@ export default function SharedWallets() {
         onConfirm={handleCreateWallet}
       >
         <Field label="Wallet name" value={walletName} onChange={setWalletName} />
-        <Field label="Spending limit" value={walletLimit} onChange={setWalletLimit} inputMode="decimal" placeholder="600.00" />
+        <Field label="Spending limit" value={walletLimit} onChange={setWalletLimit} inputMode="decimal" placeholder="$600.00" money />
         <Field label="Alert threshold (%)" value={walletThreshold} onChange={setWalletThreshold} inputMode="numeric" />
       </WalletDialog>
 
@@ -520,7 +520,7 @@ export default function SharedWallets() {
         confirmLabel="Confirm funding"
         onConfirm={handleFundWallet}
       >
-        <Field label="Amount" value={fundAmount} onChange={setFundAmount} inputMode="decimal" placeholder="120.00" />
+        <Field label="Amount" value={fundAmount} onChange={setFundAmount} inputMode="decimal" placeholder="$120.00" money />
         <ChoiceField
           label="Funding source"
           value={fundMethod}
@@ -543,7 +543,7 @@ export default function SharedWallets() {
         onConfirm={handleSpendWallet}
       >
         <Field label="Merchant" value={spendMerchant} onChange={setSpendMerchant} />
-        <Field label="Amount" value={spendAmount} onChange={setSpendAmount} inputMode="decimal" placeholder="48.00" />
+        <Field label="Amount" value={spendAmount} onChange={setSpendAmount} inputMode="decimal" placeholder="$48.00" money />
         <Field label="Category" value={spendCategory} onChange={setSpendCategory} />
         <Field label="Description" value={spendDescription} onChange={setSpendDescription} />
         {selectedWallet ? (
@@ -614,6 +614,7 @@ function Field({
   inputMode,
   autoCapitalize,
   placeholder,
+  money,
 }: {
   label: string;
   value: string;
@@ -621,18 +622,29 @@ function Field({
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   autoCapitalize?: string;
   placeholder?: string;
+  money?: boolean;
 }) {
   return (
     <label className="block">
       <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">{label}</span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        inputMode={inputMode}
-        autoCapitalize={autoCapitalize}
-        placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-line bg-paper px-3 text-sm text-ink focus:border-stamp focus:outline-none"
-      />
+      <div className="relative">
+        {money ? (
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-soft">
+            $
+          </span>
+        ) : null}
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          inputMode={inputMode}
+          autoCapitalize={autoCapitalize}
+          placeholder={placeholder}
+          className={cn(
+            "h-11 w-full rounded-xl border border-line bg-paper text-sm text-ink focus:border-stamp focus:outline-none",
+            money ? "pl-8 pr-3" : "px-3",
+          )}
+        />
+      </div>
     </label>
   );
 }
