@@ -315,10 +315,11 @@ function createLocalPlan(groupId: number): ApiCityGuidePlanResponse {
   const events = [0, 1, 2].map((order) =>
     makeDetourEvent(group.name, budgetAmount, chosenFavorites[order], order),
   );
+  const detourName = /\bboston\b/i.test(group.name) ? group.name : `${group.name} in Boston`;
   const detour: ApiDetour = {
     id: groupId,
     user_id: currentDemoUser().id,
-    name: `${group.name} in Boston`,
+    name: detourName,
     description: "A polished little run of stops shaped around the group's taste, pace, and budget.",
     events,
   };
