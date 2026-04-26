@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import {
+  ArrowRightLeft,
   CreditCard,
   Loader2,
   PiggyBank,
@@ -10,6 +11,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { api } from "@/cityApp/lib/apiAdapter";
 import { useApp } from "@/cityApp/CityShell";
@@ -247,10 +249,10 @@ export default function SharedWallets() {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 text-ink">
               <Wallet className="h-5 w-5 text-stamp" strokeWidth={2} />
-              <h2 className="font-serif text-3xl">Shared Wallets</h2>
+              <h2 className="font-serif text-3xl">Group Wallet</h2>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Keep trip money pooled, visible, and ready to tap when the group needs it. Funding, spending, member accountability, and budget guardrails all stay on this one screen.
+              Keep trip money pooled, visible, and easy to manage once the detours are picked.
             </p>
           </div>
 
@@ -263,6 +265,13 @@ export default function SharedWallets() {
               <Users />
               Join with code
             </Button>
+            <Link
+              to="/app/research"
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-stamp hover:opacity-80"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" />
+              Back to plan
+            </Link>
           </div>
         </div>
 
