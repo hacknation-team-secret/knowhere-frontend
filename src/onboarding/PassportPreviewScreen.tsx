@@ -142,29 +142,10 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
           </div>
 
           <div className="bg-paper-soft p-7 md:p-8">
-            <div className="flex items-start justify-between gap-6">
-              <div>
-                <div className="mb-1 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
-                  Passport holder
-                </div>
-                <div className="font-serif text-[24px] leading-tight text-ink">
-                  {displayName}
-                </div>
-                <div className="mt-1 text-[11.5px] text-ink-soft">
-                  {state.auth?.username
-                    ? `@${state.auth.username}`
-                    : `No. KH-${passportNo()}`}
-                </div>
-                {state.auth ? (
-                  <div className="mt-1 text-[11.5px] text-ink-soft">
-                    Issued · No. KH-{String(state.auth.userId).padStart(6, "0")}
-                  </div>
-                ) : null}
-              </div>
+            <div className="flex items-start justify-end">
               <PostcardMeta
-                city={state.trip.city}
-                area={state.trip.area}
-                timing={state.trip.timing}
+                username={state.auth?.username}
+                userId={state.auth?.userId}
                 confidence={confidenceBadge(state.profile?.confidence)}
               />
             </div>
@@ -196,9 +177,6 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 <div className="mt-3 text-[12px] uppercase tracking-[0.18em] text-ink-soft">
                   {state.trip.timing || "right now"}
                 </div>
-                <div className="mt-4 text-[12px] text-ink-soft">
-                  {heroEmoji} {truncate(confidenceBadge(state.profile?.confidence), 54)}
-                </div>
               </div>
             </div>
 
@@ -222,7 +200,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 Big read
               </div>
               <p className="max-w-[18ch] font-serif text-[24px] leading-[1.03] text-ink">
-                {heroEmoji} {truncate(styleSummary, 52)}
+                {truncate(styleSummary, 52)}
               </p>
             </div>
           </div>
@@ -235,24 +213,27 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
 }
 
 function PostcardMeta({
-  city,
-  area,
-  timing,
+  username,
+  userId,
   confidence,
 }: {
-  city: string;
-  area?: string;
-  timing?: string;
+  username?: string;
+  userId?: number;
   confidence?: string;
 }) {
   return (
     <div className="min-w-[150px] rounded-[18px] border border-line/70 bg-paper p-4">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft">Passport note</div>
-      <div className="mt-1 font-serif text-[18px] text-ink">{city}</div>
-      {area ? <div className="mt-1 text-[12px] text-ink-soft">{area}</div> : null}
-      {timing ? <div className="mt-3 text-[12px] capitalize text-ink-soft">{timing}</div> : null}
+      <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft">Issued</div>
+      <div className="mt-1 font-serif text-[18px] text-ink">
+        {username ? `@${username}` : `KH-${passportNo()}`}
+      </div>
+      {userId ? (
+        <div className="mt-1 text-[12px] text-ink-soft">
+          No. KH-{String(userId).padStart(6, "0")}
+        </div>
+      ) : null}
       {confidence ? (
-        <div className="mt-1 text-[12px] text-ink-soft">{confidence}</div>
+        <div className="mt-3 text-[12px] text-ink-soft">{confidence}</div>
       ) : null}
     </div>
   );
