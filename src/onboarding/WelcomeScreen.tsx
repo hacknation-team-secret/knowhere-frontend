@@ -57,19 +57,16 @@ export function WelcomeScreen({ onNext, onSignIn }: { onNext: () => void; onSign
         <Illo
           src={cafe}
           alt="A sunlit cafe table"
-          caption="a slow morning"
           className="col-span-4 row-span-4 col-start-3 row-start-1"
         />
         <Illo
           src={park}
           alt="A tree with a bench beneath"
-          caption="a side-loop home"
           className="col-span-3 row-span-3 col-start-1 row-start-4"
         />
         <Illo
           src={bookstore}
           alt="A cozy bookstore corner"
-          caption="lamp-lit corners"
           className="col-span-3 row-span-2 col-start-4 row-start-5"
         />
       </div>
@@ -78,7 +75,6 @@ export function WelcomeScreen({ onNext, onSignIn }: { onNext: () => void; onSign
         <Illo
           src={cafe}
           alt="A sunlit cafe table"
-          caption="a slow morning"
           className="w-full aspect-[4/5]"
         />
       </div>
@@ -89,12 +85,10 @@ export function WelcomeScreen({ onNext, onSignIn }: { onNext: () => void; onSign
 function Illo({
   src,
   alt,
-  caption,
   className = "",
 }: {
   src: string;
   alt: string;
-  caption?: string;
   className?: string;
 }) {
   return (
@@ -105,11 +99,6 @@ function Illo({
         loading="eager"
         className="absolute inset-0 h-full w-full object-contain"
       />
-      {caption ? (
-        <figcaption className="absolute inset-x-0 bottom-0 px-1 py-1 text-[10.5px] uppercase tracking-[0.16em] text-ink-soft/80">
-          {caption}
-        </figcaption>
-      ) : null}
     </figure>
   );
 }
