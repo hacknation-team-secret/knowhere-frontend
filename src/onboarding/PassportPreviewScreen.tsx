@@ -17,19 +17,19 @@ const STAMP_TONES = ["coral", "ocean", "moss", "gold"] as const;
 export function PassportPreviewScreen({ state, onEnter }: Props) {
   const [stampIn, setStampIn] = useState(false);
   const [attended, setAttended] = useState<ApiEvent[]>([]);
+
   useEffect(() => {
     const t = setTimeout(() => setStampIn(true), 250);
     return () => clearTimeout(t);
   }, []);
 
-  // Pull live passport data from the API once we have a signed-in user.
   useEffect(() => {
     if (!state.auth) return;
     let cancelled = false;
     api
       .passport(state.auth.username)
-      .then((p) => {
-        if (!cancelled) setAttended(p.attended_events ?? []);
+      .then((passport) => {
+        if (!cancelled) setAttended(passport.attended_events ?? []);
       })
       .catch(() => {});
     return () => {
@@ -40,7 +40,7 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
   const styleSummary =
     state.profile?.travelStyle ||
     quickPicksSummary(state) ||
-    "Still finding your shape — a fine place to start.";
+    "Still finding your shape.";
 
   const chips = buildContextChips(state);
   const stampCount = attended.length;
@@ -50,17 +50,17 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
 
   return (
     <section>
-      <div className="text-center mb-10">
-        <p className="text-[11px] tracking-[0.22em] uppercase text-ink-soft mb-3">
+      <div className="mb-10 text-center">
+        <p className="mb-3 text-[11px] uppercase tracking-[0.22em] text-ink-soft">
           Your Passport
         </p>
-        <h1 className="font-serif text-[40px] md:text-[52px] leading-[1.02] text-ink">
+        <h1 className="font-serif text-[40px] leading-[1.02] text-ink md:text-[52px]">
           Stamped & ready.
         </h1>
         <Wave className="mx-auto mt-4 w-20 text-coral/60" />
       </div>
 
-      <article className="paper-card-lift overflow-hidden mb-12">
+      <article className="paper-card-lift mb-12 overflow-hidden">
         <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
           <div className="relative overflow-hidden border-b border-line/70 lg:border-b-0 lg:border-r">
             <div
@@ -80,13 +80,13 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
               <Spark className="size-4 -rotate-6" />
             </div>
 
-            <div className="relative min-h-[340px] p-7 md:p-8 flex flex-col justify-between">
+            <div className="relative flex min-h-[340px] flex-col justify-between p-7 md:p-8">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  <div className="text-[10.5px] tracking-[0.22em] uppercase text-white/78 mb-2">
-                    Knowhere · Passport image
+                  <div className="mb-2 text-[10.5px] uppercase tracking-[0.22em] text-white/78">
+                    Knowhere · Passport
                   </div>
-                  <div className="font-serif text-[34px] md:text-[42px] leading-[0.98] text-white max-w-[10ch]">
+                  <div className="max-w-[10ch] font-serif text-[34px] leading-[0.98] text-white md:text-[42px]">
                     {displayName}
                   </div>
                   <div className="mt-3 text-[12px] uppercase tracking-[0.2em] text-white/74">
@@ -95,18 +95,20 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 </div>
                 <div className={stampIn ? "animate-stamp-press" : "opacity-0"}>
                   <Stamp tone="gold" className="border-white/65 text-white">
-                    {state.trip.city || "City"}<br />· issued ·
+                    {state.trip.city || "City"}
+                    <br />
+                    · issued ·
                   </Stamp>
                 </div>
               </div>
 
-              <div className="max-w-[18rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
+              <div className="max-w-[17rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
                 <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-white/80">
                   <Sparkles className="size-3.5" strokeWidth={1.8} />
-                  Visual ingest
+                  Travel read
                 </div>
                 <p className="mt-2 font-serif text-[20px] leading-[1.18] text-white">
-                  {truncate(styleSummary, 92)}
+                  {truncate(styleSummary, 72)}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {visualWords.map((word) => (
@@ -125,22 +127,22 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
           <div className="bg-paper-soft p-7 md:p-8">
             <div className="flex items-start justify-between gap-6">
               <div>
-                <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-1">
+                <div className="mb-1 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
                   Passport holder
                 </div>
-                <div className="font-serif text-[24px] text-ink leading-tight">
+                <div className="font-serif text-[24px] leading-tight text-ink">
                   {displayName}
                 </div>
-                <div className="text-[11.5px] text-ink-soft mt-1">
+                <div className="mt-1 text-[11.5px] text-ink-soft">
                   {state.auth?.username
                     ? `@${state.auth.username}`
                     : `No. KH-${passportNo()}`}
                 </div>
-                {state.auth && (
-                  <div className="text-[11.5px] text-ink-soft mt-1">
+                {state.auth ? (
+                  <div className="mt-1 text-[11.5px] text-ink-soft">
                     Issued · No. KH-{String(state.auth.userId).padStart(6, "0")}
                   </div>
-                )}
+                ) : null}
               </div>
               <PostcardMeta
                 city={state.trip.city}
@@ -151,59 +153,57 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
             </div>
 
             <div className="mt-7">
-              <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-2">
-                Parsed into your passport
+              <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                Preference
               </div>
-              <p className="font-serif text-[22px] leading-[1.25] text-ink max-w-[24ch]">
-                {truncate(styleSummary, 120)}
+              <p className="max-w-[22ch] font-serif text-[22px] leading-[1.25] text-ink">
+                {truncate(styleSummary, 84)}
               </p>
             </div>
 
-            {chips.length > 0 && (
+            {chips.length > 0 ? (
               <div className="mt-6">
-                <div className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft mb-3">
-                  Captured signals
+                <div className="mb-3 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                  Signals
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  {chips.map((c) => (
-                    <span key={c} className="chip">{c}</span>
+                  {chips.map((chip) => (
+                    <span key={chip} className="chip">
+                      {chip}
+                    </span>
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </article>
 
-      {/* Stamp collection */}
       <section className="mb-12">
-        <SectionHeader
-          title="Stamp collection"
-          right={`${stampCount} / 12`}
-        />
-        <div className="paper-card p-5 grid grid-cols-6 md:grid-cols-8 gap-4">
-          {Array.from({ length: 12 }).map((_, i) => {
-            const ev = attended[i];
-            if (ev) {
-              const tone = STAMP_TONES[i % STAMP_TONES.length];
+        <SectionHeader title="Stamp collection" right={`${stampCount} / 12`} />
+        <div className="paper-card grid grid-cols-6 gap-4 p-5 md:grid-cols-8">
+          {Array.from({ length: 12 }).map((_, index) => {
+            const event = attended[index];
+            if (event) {
+              const tone = STAMP_TONES[index % STAMP_TONES.length];
               return (
                 <div
-                  key={ev.id}
-                  className="aspect-square grid place-items-center"
-                  title={ev.title}
+                  key={event.id}
+                  className="grid aspect-square place-items-center"
+                  title={event.title}
                 >
                   <Stamp tone={tone}>
-                    {ev.title.split(" ").slice(0, 2).join(" ")}
+                    {event.title.split(" ").slice(0, 2).join(" ")}
                   </Stamp>
                 </div>
               );
             }
             return (
               <div
-                key={i}
-                className="aspect-square rounded-full border border-dashed border-line grid place-items-center"
+                key={index}
+                className="grid aspect-square place-items-center rounded-full border border-dashed border-line"
               >
-                <span className="text-[10px] text-ink-soft/45 font-serif italic">
+                <span className="font-serif text-[10px] italic text-ink-soft/45">
                   empty
                 </span>
               </div>
@@ -212,34 +212,32 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
         </div>
       </section>
 
-      {/* Starter Detours */}
       <section className="mb-6">
         <SectionHeader title="Starter Detours" right="picked for you" />
-        <div className="grid md:grid-cols-2 gap-5">
-          {STARTER_DETOURS.map((d, i) => (
-            <article key={d.id} className="photo-card group">
+        <div className="grid gap-5 md:grid-cols-2">
+          {STARTER_DETOURS.map((detour, index) => (
+            <article key={detour.id} className="photo-card group">
               <div className="relative">
                 <img
-                  src={d.image}
-                  alt={d.title}
+                  src={detour.image}
+                  alt={detour.title}
                   loading="lazy"
                   width={800}
                   height={1024}
-                  className="w-full aspect-[16/10] object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                  className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                 />
-                <div className="absolute top-3 left-3">
-                  <StampPill tone={STAMP_TONES[i % STAMP_TONES.length]}>{d.stamp}</StampPill>
+                <div className="absolute left-3 top-3">
+                  <StampPill tone={STAMP_TONES[index % STAMP_TONES.length]}>
+                    {detour.stamp}
+                  </StampPill>
                 </div>
               </div>
               <div className="p-5">
-                <h3 className="font-serif text-[20px] text-ink leading-tight mb-1.5">
-                  {d.title}
+                <h3 className="mb-1.5 font-serif text-[20px] leading-tight text-ink">
+                  {detour.title}
                 </h3>
-                <p className="text-[13px] text-ink-soft leading-snug mb-3">
-                  {d.stops.join(" · ")}
-                </p>
                 <div className="flex items-center gap-1.5 text-[12px] text-ink-soft">
-                  <Clock className="size-3" strokeWidth={1.6} /> {d.duration}
+                  <Clock className="size-3" strokeWidth={1.6} /> {detour.duration}
                 </div>
               </div>
             </article>
@@ -254,9 +252,9 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
 
 function SectionHeader({ title, right }: { title: string; right?: string }) {
   return (
-    <div className="flex items-baseline justify-between mb-4">
-      <h2 className="text-[10.5px] tracking-[0.2em] uppercase text-ink-soft">{title}</h2>
-      {right && <span className="text-[11.5px] text-ink-soft">{right}</span>}
+    <div className="mb-4 flex items-baseline justify-between">
+      <h2 className="text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">{title}</h2>
+      {right ? <span className="text-[11.5px] text-ink-soft">{right}</span> : null}
     </div>
   );
 }
@@ -273,12 +271,12 @@ function PostcardMeta({
   confidence?: string;
 }) {
   return (
-    <div className="rounded-[18px] border border-line/70 bg-paper p-4 min-w-[150px]">
-      <div className="text-[10px] tracking-[0.2em] uppercase text-ink-soft">Destination</div>
+    <div className="min-w-[150px] rounded-[18px] border border-line/70 bg-paper p-4">
+      <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft">Destination</div>
       <div className="mt-1 font-serif text-[18px] text-ink">{city}</div>
-      {area && <div className="mt-1 text-[12px] text-ink-soft">{area}</div>}
-      {timing && <div className="mt-3 text-[12px] text-ink-soft capitalize">{timing}</div>}
-      {confidence && <div className="mt-1 text-[12px] text-ink-soft">{confidence}</div>}
+      {area ? <div className="mt-1 text-[12px] text-ink-soft">{area}</div> : null}
+      {timing ? <div className="mt-3 text-[12px] capitalize text-ink-soft">{timing}</div> : null}
+      {confidence ? <div className="mt-1 text-[12px] text-ink-soft">{confidence}</div> : null}
     </div>
   );
 }
@@ -286,13 +284,12 @@ function PostcardMeta({
 function buildContextChips(state: PassportState): string[] {
   const chips: string[] = [];
   if (state.picks.userType) chips.push(state.picks.userType);
-  state.picks.interests.slice(0, 4).forEach((i) => chips.push(i));
-  state.picks.vibes.slice(0, 3).forEach((v) => chips.push(v));
+  state.picks.interests.slice(0, 3).forEach((interest) => chips.push(interest));
+  state.picks.vibes.slice(0, 2).forEach((vibe) => chips.push(vibe));
   if (state.picks.mobility) chips.push(state.picks.mobility);
-  if (state.picks.budget) chips.push(state.picks.budget + " budget");
-  state.picks.avoids.slice(0, 2).forEach((a) => chips.push("no " + a));
-  state.profile?.pulls?.slice(0, 3).forEach((p) => chips.push(p));
-  return chips.slice(0, 12);
+  if (state.picks.budget) chips.push(`${state.picks.budget} budget`);
+  state.profile?.pulls?.slice(0, 2).forEach((pull) => chips.push(pull));
+  return chips.slice(0, 8);
 }
 
 function buildVisualWords(state: PassportState): string[] {
@@ -305,7 +302,7 @@ function buildVisualWords(state: PassportState): string[] {
     .map((item) => item.replace(/\s+/g, " ").trim())
     .filter(Boolean);
 
-  return Array.from(new Set(words)).slice(0, 5);
+  return Array.from(new Set(words)).slice(0, 3);
 }
 
 function paletteFromState(state: PassportState): [string, string, string, string] {
@@ -329,12 +326,18 @@ function paletteFromState(state: PassportState): [string, string, string, string
 
 function quickPicksSummary(state: PassportState): string | null {
   const { picks } = state;
-  if (!picks.userType && picks.interests.length === 0 && picks.vibes.length === 0) return null;
+  if (!picks.userType && picks.interests.length === 0 && picks.vibes.length === 0) {
+    return null;
+  }
   const parts: string[] = [];
   if (picks.userType) parts.push(`A ${picks.userType}`);
-  if (picks.interests.length) parts.push(`drawn to ${picks.interests.slice(0, 3).join(", ")}`);
-  if (picks.vibes.length) parts.push(`looking for something ${picks.vibes.slice(0, 2).join(" and ")}`);
-  return parts.join(" ") + ".";
+  if (picks.interests.length) {
+    parts.push(`drawn to ${picks.interests.slice(0, 2).join(", ")}`);
+  }
+  if (picks.vibes.length) {
+    parts.push(`looking for ${picks.vibes.slice(0, 1).join(" and ")}`);
+  }
+  return `${parts.join(" ")}.`;
 }
 
 function passportNo() {
@@ -343,5 +346,5 @@ function passportNo() {
 
 function truncate(value: string, max: number) {
   if (value.length <= max) return value;
-  return `${value.slice(0, max).trim()}…`;
+  return `${value.slice(0, max).trim()}...`;
 }
