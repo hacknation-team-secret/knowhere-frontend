@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Camera, MapPin, Sparkles, Stars } from "lucide-react";
 import { Stamp } from "./Stamp";
 import { Actions } from "./Actions";
 import { Compass, Spark, Wave } from "./decor";
@@ -25,8 +25,11 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
 
   const chips = buildContextChips(state);
   const visualWords = buildVisualWords(state);
+  const editorialWords = buildEditorialWords(state);
   const displayName = state.name || state.auth?.username || "Traveler";
   const palette = useMemo(() => paletteFromState(state), [state]);
+  const heroEmoji = heroEmojiFromState(state);
+  const heroImage = heroImageFromState(state);
 
   return (
     <section>
@@ -82,23 +85,57 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 </div>
               </div>
 
-              <div className="max-w-[17rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
-                <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-white/80">
-                  <Sparkles className="size-3.5" strokeWidth={1.8} />
-                  Travel read
+              <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+                <div className="max-w-[18rem] rounded-[24px] border border-white/35 bg-white/16 p-4 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-white/80">
+                    <Sparkles className="size-3.5" strokeWidth={1.8} />
+                    Travel read
+                  </div>
+                  <p className="mt-2 font-serif text-[24px] leading-[1.02] text-white md:text-[28px]">
+                    {truncate(styleSummary, 42)}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {visualWords.map((word) => (
+                      <span
+                        key={word}
+                        className="rounded-full border border-white/35 bg-white/16 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/88"
+                      >
+                        {word}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <p className="mt-2 font-serif text-[20px] leading-[1.18] text-white">
-                  {truncate(styleSummary, 72)}
-                </p>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {visualWords.map((word) => (
-                    <span
-                      key={word}
-                      className="rounded-full border border-white/35 bg-white/16 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/88"
-                    >
-                      {word}
-                    </span>
-                  ))}
+
+                <div className="relative ml-auto flex w-full max-w-[220px] items-end justify-end">
+                  <div className="absolute inset-0 rounded-[28px] bg-white/10 blur-2xl" />
+                  <div className="relative flex aspect-[4/5] w-full items-end overflow-hidden rounded-[28px] border border-white/35 bg-white/12 p-4 backdrop-blur-sm">
+                    <div
+                      className="absolute inset-0 opacity-90"
+                      style={{
+                        background: `linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.2) 100%), radial-gradient(circle at 50% 18%, ${palette[1]} 0%, transparent 26%), linear-gradient(145deg, ${palette[2]} 0%, ${palette[3]} 100%)`,
+                      }}
+                    />
+                    <div className="relative flex h-full w-full flex-col justify-between">
+                      <div className="flex items-center justify-between text-white/78">
+                        <Stars className="size-4" strokeWidth={1.8} />
+                        <span className="text-[10px] uppercase tracking-[0.18em]">Editorial Cut</span>
+                      </div>
+                      <div className="mt-6 flex-1 overflow-hidden rounded-[22px] border border-white/25 bg-white/10">
+                        <img
+                          src={heroImage}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-white">
+                        <div>
+                          <div className="text-[11px] uppercase tracking-[0.2em] text-white/74">Mood</div>
+                          <div className="font-serif text-[20px] leading-none">{heroEmoji} {editorialWords[0] || "Glow"}</div>
+                        </div>
+                        <Camera className="size-4 text-white/78" strokeWidth={1.8} />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -128,17 +165,41 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 city={state.trip.city}
                 area={state.trip.area}
                 timing={state.trip.timing}
-                confidence={state.profile?.confidence}
+                confidence={confidenceBadge(state.profile?.confidence)}
               />
             </div>
 
-            <div className="mt-7">
-              <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
-                Preference
+            <div className="mt-7 grid gap-5 md:grid-cols-[1.1fr_0.9fr]">
+              <div>
+                <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                  Preference
+                </div>
+                <p className="max-w-[14ch] font-serif text-[30px] leading-[0.95] text-ink md:text-[38px]">
+                  {truncate(styleSummary, 34)}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {editorialWords.map((word) => (
+                    <span key={word} className="chip">
+                      {word}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <p className="max-w-[22ch] font-serif text-[22px] leading-[1.25] text-ink">
-                {truncate(styleSummary, 84)}
-              </p>
+
+              <div className="rounded-[22px] border border-line/70 bg-paper p-4">
+                <div className="mb-2 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                  <MapPin className="size-3.5" strokeWidth={1.8} />
+                  Destination
+                </div>
+                <div className="font-serif text-[28px] leading-none text-ink">{state.trip.city}</div>
+                <div className="mt-2 text-[13px] text-ink-soft">{state.trip.area || "City center"}</div>
+                <div className="mt-3 text-[12px] uppercase tracking-[0.18em] text-ink-soft">
+                  {state.trip.timing || "right now"}
+                </div>
+                <div className="mt-4 text-[12px] text-ink-soft">
+                  {heroEmoji} {truncate(confidenceBadge(state.profile?.confidence), 54)}
+                </div>
+              </div>
             </div>
 
             {chips.length > 0 ? (
@@ -155,6 +216,15 @@ export function PassportPreviewScreen({ state, onEnter }: Props) {
                 </div>
               </div>
             ) : null}
+
+            <div className="mt-6 rounded-[22px] border border-line/70 bg-card p-4">
+              <div className="mb-2 text-[10.5px] uppercase tracking-[0.2em] text-ink-soft">
+                Big read
+              </div>
+              <p className="max-w-[18ch] font-serif text-[24px] leading-[1.03] text-ink">
+                {heroEmoji} {truncate(styleSummary, 52)}
+              </p>
+            </div>
           </div>
         </div>
       </article>
@@ -177,7 +247,7 @@ function PostcardMeta({
 }) {
   return (
     <div className="min-w-[150px] rounded-[18px] border border-line/70 bg-paper p-4">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft">Destination</div>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-ink-soft">Passport note</div>
       <div className="mt-1 font-serif text-[18px] text-ink">{city}</div>
       {area ? <div className="mt-1 text-[12px] text-ink-soft">{area}</div> : null}
       {timing ? <div className="mt-3 text-[12px] capitalize text-ink-soft">{timing}</div> : null}
@@ -190,13 +260,13 @@ function PostcardMeta({
 
 function buildContextChips(state: PassportState): string[] {
   const chips: string[] = [];
-  if (state.picks.userType) chips.push(state.picks.userType);
-  state.picks.interests.slice(0, 3).forEach((interest) => chips.push(interest));
-  state.picks.vibes.slice(0, 2).forEach((vibe) => chips.push(vibe));
-  if (state.picks.mobility) chips.push(state.picks.mobility);
-  if (state.picks.budget) chips.push(`${state.picks.budget} budget`);
-  state.profile?.pulls?.slice(0, 2).forEach((pull) => chips.push(pull));
-  return chips.slice(0, 8);
+  if (state.picks.userType) chips.push(`👤 ${state.picks.userType}`);
+  state.picks.interests.slice(0, 2).forEach((interest) => chips.push(`✨ ${shortLabel(interest)}`));
+  state.picks.vibes.slice(0, 2).forEach((vibe) => chips.push(`💫 ${shortLabel(vibe)}`));
+  if (state.picks.mobility) chips.push(`🚶 ${shortLabel(state.picks.mobility)}`);
+  if (state.picks.budget) chips.push(`💸 ${shortLabel(state.picks.budget)}`);
+  state.profile?.pulls?.slice(0, 2).forEach((pull) => chips.push(`📍 ${shortLabel(pull)}`));
+  return chips.slice(0, 6);
 }
 
 function buildVisualWords(state: PassportState): string[] {
@@ -208,7 +278,19 @@ function buildVisualWords(state: PassportState): string[] {
   ]
     .map((item) => item.replace(/\s+/g, " ").trim())
     .filter(Boolean);
-  return Array.from(new Set(words)).slice(0, 3);
+  return Array.from(new Set(words)).map(shortLabel).slice(0, 3);
+}
+
+function buildEditorialWords(state: PassportState): string[] {
+  return [
+    state.picks.vibes[0],
+    state.picks.interests[0],
+    state.profile?.pulls?.[0],
+    state.profile?.pace,
+  ]
+    .filter(Boolean)
+    .map((item) => shortLabel(String(item)))
+    .slice(0, 3);
 }
 
 function paletteFromState(state: PassportState): [string, string, string, string] {
@@ -246,4 +328,49 @@ function passportNo() {
 function truncate(value: string, max: number) {
   if (value.length <= max) return value;
   return `${value.slice(0, max).trim()}...`;
+}
+
+function shortLabel(value: string) {
+  return value
+    .replace(/^light signal$/i, "emerging")
+    .replace(/\b(private villas?|luxury hotels?|residences?)\b/gi, "private stays")
+    .replace(/\b(restaurants?)\b/gi, "dining")
+    .replace(/\b(poolside settings?)\b/gi, "poolside")
+    .replace(/\b(strong visual identity)\b/gi, "visuals")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 24);
+}
+
+function confidenceBadge(confidence?: string) {
+  if (!confidence) return "Medium read.";
+  if (/high/i.test(confidence)) return "High confidence.";
+  if (/low/i.test(confidence)) return "Low confidence.";
+  return "Medium confidence.";
+}
+
+function heroEmojiFromState(state: PassportState) {
+  const source = `${state.profile?.travelStyle ?? ""} ${state.profile?.pulls?.join(" ") ?? ""}`.toLowerCase();
+  if (source.includes("beach") || source.includes("pool")) return "🌴";
+  if (source.includes("hotel") || source.includes("luxury") || source.includes("villa")) return "🥂";
+  if (source.includes("restaurant") || source.includes("dining") || source.includes("food")) return "🍸";
+  if (source.includes("museum") || source.includes("gallery") || source.includes("art")) return "🖼️";
+  return "✨";
+}
+
+function heroImageFromState(state: PassportState) {
+  const source = `${state.profile?.travelStyle ?? ""} ${state.profile?.pulls?.join(" ") ?? ""}`.toLowerCase();
+  if (source.includes("beach") || source.includes("pool")) {
+    return "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80";
+  }
+  if (source.includes("hotel") || source.includes("villa") || source.includes("luxury")) {
+    return "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80";
+  }
+  if (source.includes("restaurant") || source.includes("dining") || source.includes("food")) {
+    return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80";
+  }
+  if (source.includes("museum") || source.includes("gallery") || source.includes("art")) {
+    return "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80";
+  }
+  return "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80";
 }

@@ -166,6 +166,8 @@
   .chip {
     @apply inline-flex max-w-full items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-medium
            bg-card text-ink border border-line/70 text-center transition-colors whitespace-normal break-words leading-[1.2];
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   .chip[data-on="true"] {
     @apply bg-[hsl(var(--ocean)/0.10)] text-[hsl(var(--ocean-deep))] border-[hsl(var(--ocean)/0.45)];
