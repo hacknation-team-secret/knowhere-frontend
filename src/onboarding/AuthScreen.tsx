@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Loader2, AtSign, KeyRound, User as UserIcon } from "lucide-react";
+import { Loader2, KeyRound, Mail, User as UserIcon } from "lucide-react";
 import { Actions } from "./Actions";
 import { getToken, type ApiUser } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,7 +75,7 @@ export function AuthScreen({ initialUsername, initialMode, onAuthed, onSkip }: P
       {mode === "signup" && (
         <Field label="Email" optional>
           <div className="paper-card flex items-center gap-3 px-5 py-3.5">
-            <AtSign className="size-4 text-ink-soft shrink-0" strokeWidth={1.6} />
+            <Mail className="size-4 text-ink-soft shrink-0" strokeWidth={1.6} />
             <input
               type="email"
               value={email}

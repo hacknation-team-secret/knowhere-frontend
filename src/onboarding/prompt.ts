@@ -2,11 +2,13 @@ export const PASSPORT_PROMPT = `Create my Knowhere Passport Profile.
 
 Knowhere uses this profile to recommend city routes, places, and experiences that fit how I actually like to spend time.
 
-Analyze the material I paste below and infer my travel style.
+Analyze this user's travel taste by referring back to our previous interactions in this chat first, then use any pasted chat history below as additional context.
 
 Rules:
 - Do not ask follow-up questions.
-- Use only the material provided.
+- Use the existing conversation context from this thread even if no extra material is pasted below.
+- If chat history is pasted below, combine it with the earlier conversation in this thread.
+- Do not say "no material provided" if earlier messages in this conversation contain signals you can use.
 - Do not force a specific aesthetic or travel personality.
 - Do not make me sound more artsy, adventurous, luxurious, outdoorsy, social, minimalist, or "local" than the evidence supports.
 - Avoid generic labels unless you explain what they specifically mean for me.
@@ -14,8 +16,8 @@ Rules:
 - If a claim is uncertain, mark it "light signal."
 - Prioritize specificity over flattery.
 
-MATERIAL:
-[Paste saved places, notes, memories, lists, links, restaurant names, neighborhoods, social posts, screenshots described in text, or any other travel clues.]
+OPTIONAL EXTRA CHAT HISTORY:
+[Paste the user's chat history, messages, travel questions, saved ideas, links, restaurant names, neighborhoods, notes, or any other conversational clues if helpful.]
 
 Return only this:
 
@@ -25,7 +27,7 @@ TRAVEL STYLE:
 A specific 1-2 sentence summary of how I seem to like spending time in cities.
 
 REPEATED SIGNALS:
-3-6 concrete patterns found in the material.
+3-6 concrete patterns found across the conversation history.
 
 PULLS:
 Specific places, activities, settings, formats, or situations I seem drawn to.
@@ -55,7 +57,7 @@ AVOID WHEN RECOMMENDING:
 Specific recommendation mistakes Knowhere should avoid.
 
 DISTINCTIVE DETAILS:
-5 details from the material that make this profile feel specific to me.
+5 details from the conversation history that make this profile feel specific to me.
 
 CONFIDENCE:
 High / Medium / Low, with one sentence explaining why.`;

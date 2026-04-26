@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { Check, Loader2, Wallet } from "lucide-react";
+import { ArrowUpRight, Check, Loader2, Sparkles, Wallet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { api } from "@/cityApp/lib/apiAdapter";
 import { useApp } from "@/cityApp/CityShell";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { ApiCityGuidePlanResponse, ApiPublicUser, ApiSharedWallet } from "@/lib/api";
 
 type Step = "name" | "people" | "budget" | "plan";
+
+type DemoDetourMeta = {
+  emoji: string;
+  vibe: string;
+  duration: string;
+  costLabel: string;
+  bookingLabel: string;
+  bookingHref: string;
+};
 
 const STEPS: { id: Step; label: string }[] = [
   { id: "name", label: "Group" },
@@ -16,9 +27,49 @@ const STEPS: { id: Step; label: string }[] = [
   { id: "plan", label: "Plan" },
 ];
 
+const DEMO_DETOUR_META: DemoDetourMeta[] = [
+  {
+    emoji: "☕️",
+    vibe: "Soft start",
+    duration: "45 min",
+    costLabel: "$28 pp",
+    bookingLabel: "Reserve the cafe table",
+    bookingHref: "https://www.opentable.com/",
+  },
+  {
+    emoji: "🖼️",
+    vibe: "Culture glow",
+    duration: "75 min",
+    costLabel: "$42 pp",
+    bookingLabel: "Book gallery tickets",
+    bookingHref: "https://www.getyourguide.com/boston-l260/",
+  },
+  {
+    emoji: "🌅",
+    vibe: "Golden hour",
+    duration: "60 min",
+    costLabel: "$18 pp",
+    bookingLabel: "Hold the harbor cruise",
+    bookingHref: "https://www.viator.com/Boston/d678-ttd",
+  },
+  {
+    emoji: "🍸",
+    vibe: "Final flourish",
+    duration: "90 min",
+    costLabel: "$96 pp",
+    bookingLabel: "Book the dinner stop",
+    bookingHref: "https://resy.com/",
+  },
+];
+
+function getDetourMeta(order: number): DemoDetourMeta {
+  return DEMO_DETOUR_META[order] ?? DEMO_DETOUR_META[DEMO_DETOUR_META.length - 1];
+}
+
 export default function GroupWizard() {
-  const { auth } = useApp();
+  const { auth, addDetourToPassport } = useApp();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>("name");
   const [groupName, setGroupName] = useState("");
@@ -84,6 +135,21 @@ export default function GroupWizard() {
       });
       const result = await api.createCityGuidePlan(group.id);
       setPlan(result);
+      addDetourToPassport({
+        id: `group-plan-${group.id}`,
+        title: result.detour.name,
+        rationale: result.detour.description ?? "A group route shaped around your shared taste and budget.",
+        stops: result.detour.events.map(({ event }) => ({
+          placeId: event.id.toString(),
+          why: event.description || event.title,
+        })),
+        durationMin: result.detour.events.length * 45,
+        mode: "walk",
+        perkIds: [],
+        stampLabel: "Group",
+        generatedAt: Date.now(),
+        contextChips: [groupName.trim(), `$${Number(budget)} pp`, `${selectedUsers.length + 1} travelers`],
+      });
     } catch (e) {
       const msg = (e as Error).message;
       setGenError(msg);
@@ -217,14 +283,16 @@ export default function GroupWizard() {
             />
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="default"
+            size="xl"
             disabled={!groupName.trim()}
             onClick={() => setStep("people")}
-            className="w-full rounded-2xl bg-ink py-4 font-serif text-lg text-white disabled:opacity-40"
+            className="w-full font-serif text-lg"
           >
             Continue →
-          </button>
+          </Button>
         </div>
       )}
 
@@ -302,20 +370,24 @@ export default function GroupWizard() {
           </div>
 
           <div className="flex gap-3">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="xl"
               onClick={() => setStep("name")}
-              className="flex-1 rounded-2xl border border-line py-4 text-sm font-semibold text-ink-soft hover:text-ink transition-colors"
+              className="flex-1"
             >
               ← Back
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="default"
+              size="xl"
               onClick={() => setStep("budget")}
-              className="flex-[3] rounded-2xl bg-ink py-4 font-serif text-lg text-white"
+              className="flex-[3] font-serif text-lg"
             >
               Continue →
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -357,21 +429,25 @@ export default function GroupWizard() {
           </div>
 
           <div className="flex gap-3">
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="xl"
               onClick={() => setStep("people")}
-              className="flex-1 rounded-2xl border border-line py-4 text-sm font-semibold text-ink-soft hover:text-ink transition-colors"
+              className="flex-1"
             >
               ← Back
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="stamp"
+              size="xl"
               disabled={!budget}
               onClick={() => void generate()}
-              className="flex-[3] rounded-2xl bg-stamp py-4 font-serif text-lg text-white disabled:opacity-40"
+              className="flex-[3] font-serif text-lg"
             >
               Generate Detour →
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -394,16 +470,17 @@ export default function GroupWizard() {
               <div className="rounded-2xl border border-coral/20 bg-coral/5 p-4 text-sm text-coral">
                 {genError}
               </div>
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => {
                   setGenError(null);
                   setStep("budget");
                 }}
-                className="w-full rounded-2xl border border-line py-3 text-sm font-semibold text-ink-soft hover:text-ink transition-colors"
+                className="w-full"
               >
                 ← Try again
-              </button>
+              </Button>
             </div>
           )}
 
@@ -412,14 +489,15 @@ export default function GroupWizard() {
               {/* Detour */}
               <div className="space-y-5">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-stamp">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-stamp/20 bg-stamp/5 px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-stamp">
+                    <Sparkles className="h-3.5 w-3.5" />
                     Your Group Detour
-                  </p>
-                  <h2 className="mt-1 font-serif text-[34px] leading-[1.08] text-ink">
+                  </div>
+                  <h2 className="mt-3 font-serif text-[34px] leading-[1.08] text-ink">
                     {plan.detour.name}
                   </h2>
                   {plan.detour.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-ink-soft">
                       {plan.detour.description}
                     </p>
                   )}
@@ -429,23 +507,63 @@ export default function GroupWizard() {
                   {plan.detour.events
                     .slice()
                     .sort((a, b) => a.order - b.order)
-                    .map(({ event, order }) => (
-                      <li key={event.id} className="paper-card flex gap-4 p-5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-stamp/10 font-serif text-base text-stamp">
-                          {order + 1}
-                        </span>
-                        <div>
-                          <p className="font-serif text-[19px] leading-snug text-ink">
-                            {event.title}
-                          </p>
-                          {event.description && (
-                            <p className="mt-1 text-sm leading-relaxed text-ink-soft">
-                              {event.description}
-                            </p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
+                    .map(({ event, order }) => {
+                      const meta = getDetourMeta(order);
+
+                      return (
+                        <li
+                          key={event.id}
+                          className="paper-card overflow-hidden border border-line/80 bg-gradient-to-br from-paper to-paper-soft/80 p-5 shadow-[0_14px_34px_rgba(44,35,25,0.06)]"
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-stamp/10 text-2xl">
+                              <span aria-hidden="true">{meta.emoji}</span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-full bg-stamp/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-stamp">
+                                  Stop {order + 1}
+                                </span>
+                                <span className="rounded-full border border-line/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+                                  {meta.vibe}
+                                </span>
+                                <span className="rounded-full border border-ocean/20 bg-ocean/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-ocean-deep">
+                                  {meta.duration}
+                                </span>
+                              </div>
+
+                              <p className="mt-3 font-serif text-[22px] leading-snug text-ink">
+                                {event.title}
+                              </p>
+
+                              {event.description && (
+                                <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-ink-soft">
+                                  {event.description}
+                                </p>
+                              )}
+
+                              <div className="mt-4 flex flex-wrap items-center gap-3">
+                                <div className="rounded-2xl border border-line/70 bg-paper px-3 py-2">
+                                  <p className="text-[10px] uppercase tracking-[0.16em] text-ink-soft">
+                                    Estimated cost
+                                  </p>
+                                  <p className="mt-1 font-serif text-lg text-ink">{meta.costLabel}</p>
+                                </div>
+                                <a
+                                  href={meta.bookingHref}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-2 rounded-2xl bg-ink px-4 py-2.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+                                >
+                                  {meta.bookingLabel}
+                                  <ArrowUpRight className="h-4 w-4" />
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
                 </ol>
               </div>
 
@@ -462,11 +580,13 @@ export default function GroupWizard() {
                 </div>
 
                 {!wallet ? (
-                  <button
+                  <Button
                     type="button"
+                    variant="default"
+                    size="xl"
                     disabled={creatingWallet}
                     onClick={() => void createWallet()}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-ink py-4 font-serif text-lg text-white disabled:opacity-50"
+                    className="w-full font-serif text-lg"
                   >
                     {creatingWallet ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -474,7 +594,7 @@ export default function GroupWizard() {
                       <Wallet className="h-4 w-4" />
                     )}
                     Create Group Wallet
-                  </button>
+                  </Button>
                 ) : (
                   <div className="space-y-4">
                     <div className="paper-card p-5">
@@ -545,14 +665,15 @@ export default function GroupWizard() {
                               placeholder="50"
                             />
                           </div>
-                          <button
+                          <Button
                             type="button"
+                            variant="default"
+                            size="sm"
                             disabled={!fundAmount}
                             onClick={() => void fundWallet()}
-                            className="rounded-xl bg-ink px-5 text-sm font-semibold text-white disabled:opacity-40"
                           >
                             Add
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -580,14 +701,15 @@ export default function GroupWizard() {
                               placeholder="48"
                             />
                           </div>
-                          <button
+                          <Button
                             type="button"
+                            variant="stamp"
+                            size="sm"
                             disabled={!spendAmount || !spendMerchant}
                             onClick={() => void spendWallet()}
-                            className="rounded-xl bg-stamp px-5 text-sm font-semibold text-white disabled:opacity-40"
                           >
                             Log
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -631,6 +753,42 @@ export default function GroupWizard() {
                     )}
                   </div>
                 )}
+              </div>
+
+              <div className="border-t border-line/60 pt-8">
+                <div className="paper-card p-5 md:p-6">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-ink-soft">
+                        Next up
+                      </p>
+                      <h3 className="mt-1 font-serif text-[24px] text-ink">
+                        Open the full dashboard
+                      </h3>
+                      <p className="mt-2 max-w-[42ch] text-sm text-ink-soft">
+                        The core flow is set. Now jump into the richer tabs for Group Passport,
+                        Group Guide, and the full wallet controls.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => navigate("/app/wallets/shared")}
+                      >
+                        Open Wallet
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="default"
+                        onClick={() => navigate("/app/groups")}
+                      >
+                        Open Dashboard
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </>
           )}

@@ -38,7 +38,7 @@ export function Shell({
               <div aria-hidden="true" className="w-[52px]" />
             )}
             <span className="font-serif text-[18px] tracking-[0.02em] text-ink">
-              Knowwhere
+              knowhere
             </span>
             <span className="text-[11px] tracking-[0.18em] uppercase text-ink-soft tabular-nums">
               {step + 1} / {total}

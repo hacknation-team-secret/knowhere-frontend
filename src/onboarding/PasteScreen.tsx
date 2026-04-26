@@ -49,7 +49,7 @@ export function PasteScreen({
         What did it find?
       </h1>
       <p className="text-[15.5px] leading-[1.6] text-ink-soft max-w-[44ch]">
-        Paste what your chatbot returned.
+        Paste what your chatbot returned from the user's chat history.
       </p>
 
       <div className="paper-card mt-8">
@@ -58,7 +58,7 @@ export function PasteScreen({
           onChange={(e) => {
             setPasted(e.target.value);
           }}
-          placeholder="KNOWHERE PASSPORT PROFILE…"
+          placeholder="Paste the passport profile generated from the user's chat history…"
           rows={10}
           className="w-full bg-transparent text-[14px] leading-[1.6] text-ink placeholder:text-ink-soft/45 resize-none focus:outline-none p-5"
         />

@@ -30,7 +30,7 @@ export function PromptScreen({ onNext }: Props) {
         Bottle your travel style.
       </h1>
       <p className="text-[15.5px] leading-[1.6] text-ink-soft max-w-[44ch]">
-        Hand this prompt to your favorite chatbot.
+        Hand this prompt to your favorite chatbot and paste in the user's chat history.
       </p>
 
       {/* Quietly tucked-away prompt: copy is the action, the text is just there if you peek. */}

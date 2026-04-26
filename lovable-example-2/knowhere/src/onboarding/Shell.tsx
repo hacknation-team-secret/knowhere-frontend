@@ -27,7 +27,7 @@ export function Shell({ children, step, total, onBack, wide = false }: ShellProp
               <span>Back</span>
             </button>
             <span className="font-serif text-[18px] tracking-wide text-ink lowercase">
-              know·here
+              Knowhere
             </span>
             <span className="text-[11px] tracking-[0.18em] uppercase text-ink-soft tabular-nums">
               {step + 1} / {total}

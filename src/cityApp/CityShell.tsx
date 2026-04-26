@@ -6,7 +6,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, Compass, LogOut, RotateCcw, User } from "lucide-react";
 import type {
   Detour,
@@ -169,6 +169,13 @@ function TopNav() {
   const { auth, setAuth } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
+  const inWizard = location.pathname === "/app";
+
+  const navItems = [
+    { to: "/app/groups", label: "Group Passport" },
+    { to: "/app/research", label: "Group Guide" },
+    { to: "/app/wallets/shared", label: "Wallet" },
+  ];
 
   const handleSignOut = () => {
     clearBridge();
@@ -177,23 +184,34 @@ function TopNav() {
     navigate("/", { replace: true });
   };
 
-  const phaseLabel = location.pathname.startsWith("/app/wallets")
-    ? "Group wallet"
-    : location.pathname.startsWith("/app/research")
-      ? "Plan"
-      : "Group setup";
-
   return (
     <header className="border-b border-line/60 bg-paper-soft/70 backdrop-blur">
       <div className="mx-auto flex max-w-[1100px] items-center justify-between px-6 py-4">
-        <Link to="/app/groups" className="flex items-baseline gap-3">
+        <Link to={inWizard ? "/app" : "/app/groups"} className="flex items-baseline gap-3">
           <span className="font-serif text-[22px] text-ink">Knowhere</span>
           <span className="text-[10px] uppercase tracking-[0.28em] text-ink-soft">Boston</span>
         </Link>
 
-        <div className="hidden rounded-full border border-line/70 bg-card px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-soft md:block">
-          Demo flow · {phaseLabel}
-        </div>
+        {!inWizard && (
+          <nav className="hidden items-center gap-2 md:flex">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  [
+                    "rounded-full px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition-colors",
+                    isActive
+                      ? "bg-ink text-white"
+                      : "border border-line/70 bg-card text-ink-soft hover:text-ink",
+                  ].join(" ")
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
         <div className="flex items-center gap-2">
           {auth.user ? (
             <DropdownMenu>
@@ -235,9 +253,28 @@ function TopNav() {
           )}
         </div>
       </div>
-      <div className="border-t border-line/40 px-6 py-2 text-center text-[10.5px] font-semibold uppercase tracking-[0.22em] text-ink-soft md:hidden">
-        Demo flow · {phaseLabel}
-      </div>
+      {!inWizard && (
+        <div className="border-t border-line/40 px-4 py-2 md:hidden">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  [
+                    "whitespace-nowrap rounded-full px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] transition-colors",
+                    isActive
+                      ? "bg-ink text-white"
+                      : "border border-line/70 bg-card text-ink-soft",
+                  ].join(" ")
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

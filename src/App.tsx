@@ -7,7 +7,11 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { CityShellRoute } from "./cityApp/CityShellRoute";
+import Groups from "./cityApp/pages/Groups";
 import GroupWizard from "./cityApp/pages/GroupWizard";
+import SharedWallets from "./cityApp/pages/SharedWallets";
+import ResearchPage from "./cityApp/pages/ResearchPage";
+import Detour from "./cityApp/pages/Detour";
 
 const queryClient = new QueryClient();
 
@@ -22,14 +26,11 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/app" element={<CityShellRoute />}>
               <Route index element={<GroupWizard />} />
-              {/* Legacy routes redirected to the wizard */}
-              <Route path="groups" element={<Navigate to="/app" replace />} />
-              <Route path="wallets/shared" element={<Navigate to="/app" replace />} />
-              <Route path="detour" element={<Navigate to="/app" replace />} />
-              <Route path="detour/:id" element={<Navigate to="/app" replace />} />
-              <Route path="passport" element={<Navigate to="/app" replace />} />
-              <Route path="events" element={<Navigate to="/app" replace />} />
-              <Route path="research" element={<Navigate to="/app" replace />} />
+              <Route path="groups" element={<Groups />} />
+              <Route path="wallets/shared" element={<SharedWallets />} />
+              <Route path="detour" element={<Detour />} />
+              <Route path="passport" element={<Navigate to="/app/detour" replace />} />
+              <Route path="research" element={<ResearchPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
