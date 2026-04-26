@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ResearchAgentProvider } from "@/components/ResearchAgent";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { CityShellRoute } from "./cityApp/CityShellRoute";
@@ -18,24 +19,26 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/app" element={<CityShellRoute />}>
-              <Route index element={<GroupWizard />} />
-              <Route path="groups" element={<Groups />} />
-              <Route path="wallets/shared" element={<SharedWallets />} />
-              <Route path="detour" element={<Detour />} />
-              <Route path="passport" element={<Navigate to="/app/detour" replace />} />
-              <Route path="research" element={<ResearchPage />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ResearchAgentProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/app" element={<CityShellRoute />}>
+                <Route index element={<GroupWizard />} />
+                <Route path="groups" element={<Groups />} />
+                <Route path="wallets/shared" element={<SharedWallets />} />
+                <Route path="detour" element={<Detour />} />
+                <Route path="passport" element={<Navigate to="/app/detour" replace />} />
+                <Route path="research" element={<ResearchPage />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ResearchAgentProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
