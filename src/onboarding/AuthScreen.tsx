@@ -7,24 +7,19 @@ import { useAuth } from "@/hooks/useAuth";
 
 interface Props {
   initialUsername?: string;
-  initialMode?: "signin" | "signup";
+  initialMode: "signin" | "signup";
   onAuthed: (user: ApiUser, token: string) => void;
   onSkip?: () => void;
 }
 
-export function AuthScreen({
-  initialUsername,
-  initialMode = "signup",
-  onAuthed,
-  onSkip,
-}: Props) {
+export function AuthScreen({ initialUsername, initialMode, onAuthed, onSkip }: Props) {
   const { signIn, signUp } = useAuth();
   const [username, setUsername] = useState(initialUsername ?? "");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const mode = initialMode;
 
   const submit = async () => {
     if (!username.trim() || password.length < 4) {
@@ -61,28 +56,6 @@ export function AuthScreen({
         {mode === "signin"
           ? "Pick up your saved Passport and keep going."
           : "Set up a new Passport so your stamps know where to land."}
-      </p>
-
-      <p className="mb-8 text-[13px] text-ink-soft">
-        {mode === "signin" ? "Need a passport instead?" : "Already have an account?"}{" "}
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={() => {
-            setMode(mode === "signin" ? "signup" : "signin");
-            setError(null);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setMode(mode === "signin" ? "signup" : "signin");
-              setError(null);
-            }
-          }}
-          className="cursor-pointer font-medium text-ink underline underline-offset-4"
-        >
-          {mode === "signin" ? "Create account" : "Sign in"}
-        </span>
       </p>
 
       <Field label="Username">

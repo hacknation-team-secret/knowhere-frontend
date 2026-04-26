@@ -37,7 +37,14 @@ const WEATHER_ICON: Record<Weather, JSX.Element> = {
 };
 
 export default function CityPulse() {
-  const { profile, addDetourToPassport, auth, requireAuth } = useApp();
+  const {
+    profile,
+    savedPlaceIds,
+    togglePlaceSaved,
+    addDetourToPassport,
+    auth,
+    requireAuth,
+  } = useApp();
   const navigate = useNavigate();
 
   const [ctx, setCtx] = useState<PulseContext>(() =>
@@ -147,7 +154,13 @@ export default function CityPulse() {
       </section>
 
       {/* Map */}
-      <InteractiveBostonMap />
+      <InteractiveBostonMap
+        highlight={ctx.neighborhood}
+        detour={primaryDetour}
+        savedPlaceIds={savedPlaceIds}
+        onNeighborhoodTap={(n) => update("neighborhood", n)}
+        onPlaceTap={(id) => togglePlaceSaved(id)}
+      />
 
       {/* Primary Detour */}
       <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
