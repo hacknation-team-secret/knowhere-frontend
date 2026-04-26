@@ -62,6 +62,13 @@ const DEMO_DETOUR_META: DemoDetourMeta[] = [
   },
 ];
 
+const DEMO_PULSE = [
+  "📍 Kendall / Cambridge",
+  "⏱️ 90 minutes free",
+  "☀️ Clear skies",
+  "🚲 Bluebikes nearby",
+];
+
 function getDetourMeta(order: number): DemoDetourMeta {
   return DEMO_DETOUR_META[order] ?? DEMO_DETOUR_META[DEMO_DETOUR_META.length - 1];
 }
@@ -217,6 +224,18 @@ export default function GroupWizard() {
   }
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
+  const stopCount = plan?.detour.events.length ?? 0;
+  const projectedSpend = plan?.detour.events
+    ? plan.detour.events.reduce((sum, { order }) => {
+        const amount = getDetourMeta(order).costLabel.match(/\$([0-9]+)/)?.[1];
+        return sum + Number(amount ?? 0);
+      }, 0)
+    : 0;
+  const tripPulse = [
+    ...DEMO_PULSE,
+    `${selectedUsers.length + 1} travelers`,
+    budget ? `💳 About $${Number(budget).toFixed(0)} pp` : null,
+  ].filter(Boolean) as string[];
 
   return (
     <div className="mx-auto max-w-lg py-6 md:py-12">
@@ -460,7 +479,7 @@ export default function GroupWizard() {
               <Loader2 className="h-8 w-8 animate-spin text-ocean-deep" />
               <p className="mt-5 font-serif text-2xl text-ink">Crafting your detour…</p>
               <p className="mt-2 text-sm text-ink-soft">
-                Reading passports, checking events, balancing the group.
+                Reading passports, scanning the city pulse, balancing budget and vibe.
               </p>
             </div>
           )}
@@ -501,6 +520,29 @@ export default function GroupWizard() {
                       {plan.detour.description}
                     </p>
                   )}
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-[1.05fr_0.95fr]">
+                  <div className="paper-card p-4">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-ink-soft">
+                      City pulse
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {tripPulse.map((item) => (
+                        <span key={item} className="chip">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <DetourMetric label="Stops" value={String(stopCount)} />
+                    <DetourMetric label="Window" value={`${Math.max(stopCount, 1) * 45} min`} />
+                    <DetourMetric
+                      label="Spend"
+                      value={projectedSpend > 0 ? `$${projectedSpend}` : `$${Number(budget || 0).toFixed(0)}`}
+                    />
+                  </div>
                 </div>
 
                 <ol className="space-y-3">
@@ -575,7 +617,7 @@ export default function GroupWizard() {
                   </p>
                   <h3 className="mt-1 font-serif text-[24px] text-ink">Split the cost</h3>
                   <p className="mt-1 text-sm text-ink-soft">
-                    Create a shared wallet to track spending together.
+                    Pool the float for bookings, tickets, and one clean night out.
                   </p>
                 </div>
 
@@ -763,12 +805,17 @@ export default function GroupWizard() {
                         Next up
                       </p>
                       <h3 className="mt-1 font-serif text-[24px] text-ink">
-                        Open the full dashboard
+                        Keep the trip moving
                       </h3>
                       <p className="mt-2 max-w-[42ch] text-sm text-ink-soft">
-                        The core flow is set. Now jump into the richer tabs for Group Passport,
+                        The reveal is locked. Now hop into the richer tabs for Group Passport,
                         Group Guide, and the full wallet controls.
                       </p>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="chip">🪪 Group Passport</span>
+                        <span className="chip">✨ Group Guide</span>
+                        <span className="chip">💳 Shared wallet</span>
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
@@ -794,6 +841,15 @@ export default function GroupWizard() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function DetourMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="paper-card flex min-h-[92px] flex-col justify-between p-4">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-ink-soft">{label}</p>
+      <p className="font-serif text-[28px] leading-none text-ink">{value}</p>
     </div>
   );
 }

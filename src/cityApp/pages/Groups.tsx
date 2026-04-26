@@ -15,6 +15,7 @@ import {
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";
 import { useResearchAgent } from "@/components/ResearchAgent";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/cityApp/lib/types";
@@ -310,6 +311,7 @@ export default function Groups() {
     { label: "Set budget", done: hasSavedBudget },
     { label: "Open Group Guide", done: hasSavedBudget },
   ];
+  const pulse = buildGroupPulse(profile, selectedGroup?.description);
 
   if (!auth.user) {
     return (
@@ -341,27 +343,34 @@ export default function Groups() {
                 {hasFavorites ? `${favorites.length} favorites` : "Favorites empty"}
               </StatusChip>
             </div>
+            <div className="flex flex-wrap gap-2">
+              {pulse.map((item) => (
+                <span key={item} className="chip">
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2 lg:justify-end">
-            <button
+            <Button
               type="button"
+              variant="passport"
               onClick={heroAction.onClick}
               disabled={heroAction.disabled}
-              className="inline-flex items-center gap-2 rounded-full bg-ocean-deep px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white shadow-sm disabled:opacity-50"
             >
               {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               {heroAction.label}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="outline"
               onClick={() => inviteSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
               disabled={!selectedGroup || !canUseSelectedGroup}
-              className="inline-flex items-center gap-2 rounded-full border border-line bg-paper-soft px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-ink-soft disabled:opacity-50"
             >
               <UserPlus className="h-4 w-4" />
               Invite friends
-            </button>
+            </Button>
           </div>
         </div>
       </section>
@@ -434,24 +443,24 @@ export default function Groups() {
             </label>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <button
+              <Button
                 type="button"
+                variant="passport"
                 onClick={() => void createGroup()}
                 disabled={groupLoading || !groupName.trim()}
-                className="inline-flex items-center gap-2 rounded-full bg-ocean-deep px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
               >
                 {groupLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
                 Create group
-              </button>
+              </Button>
               {selectedGroup?.memberships.some((item) => item.user.id === auth.user?.id && item.status === "pending") && (
-                <button
+                <Button
                   type="button"
+                  variant="stamp"
                   onClick={() => void acceptInvite(selectedGroup.id)}
                   disabled={groupLoading}
-                  className="inline-flex items-center gap-2 rounded-full border border-stamp/30 bg-stamp/10 px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-stamp disabled:opacity-50"
                 >
                   Join group
-                </button>
+                </Button>
               )}
             </div>
 
@@ -498,14 +507,15 @@ export default function Groups() {
                       </option>
                     ))}
                   </select>
-                  <button
+                  <Button
                     type="button"
+                    variant="stamp"
                     onClick={() => void inviteUserToSelected(inviteUsername)}
                     disabled={groupLoading || !inviteUsername || !canUseSelectedGroup}
-                    className="inline-flex h-11 items-center justify-center rounded-xl border border-stamp/30 bg-stamp px-4 text-sm font-semibold text-white disabled:opacity-50"
+                    className="h-11 rounded-xl"
                   >
                     Invite
-                  </button>
+                  </Button>
                 </div>
                 <p className="mt-2 text-xs text-ink-soft">
                   {visibleInvitees.length > 0
@@ -557,14 +567,15 @@ export default function Groups() {
                   inputMode="decimal"
                   placeholder="Cost / person"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="stamp"
                   onClick={() => void addFavorite()}
                   disabled={groupLoading || !favoriteTitle.trim() || !canUseSelectedGroup}
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-stamp/30 bg-stamp/10 px-4 text-sm font-semibold text-stamp disabled:opacity-50"
+                  className="h-11 rounded-xl"
                 >
                   Add favorite
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -639,22 +650,24 @@ export default function Groups() {
             </div>
 
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <button
+              <Button
                 type="button"
+                variant="passport"
                 onClick={() => void saveBudget()}
                 disabled={groupLoading || !budgetAmount || !canUseSelectedGroup}
-                className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-ocean-deep px-4 text-sm font-semibold text-white disabled:opacity-50"
+                className="h-11 flex-1 rounded-xl"
               >
                 Save budget
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => void confirmBudgetAndLaunchCityGuide()}
                 disabled={groupLoading || !selectedGroup || !budgetAmount || !canUseSelectedGroup}
-                className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-stamp/30 bg-stamp/10 px-4 text-sm font-semibold text-stamp disabled:opacity-50"
+                className="h-11 flex-1 rounded-xl"
               >
                 {hasSavedBudget ? "Open Group Guide" : "Confirm budget"}
-              </button>
+              </Button>
             </div>
 
             {budgets.length > 0 && (
@@ -677,15 +690,15 @@ export default function Groups() {
                   {acceptedMemberCount} accepted and {invitedMemberCount} invited.
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="passport"
                 onClick={() => void confirmBudgetAndLaunchCityGuide()}
                 disabled={groupLoading || !selectedGroup || !budgetAmount || !canUseSelectedGroup}
-                className="inline-flex items-center gap-2 rounded-full bg-ocean-deep px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white disabled:opacity-50"
               >
                 Open Group Guide
                 <ArrowRight className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </div>
 
             <div className="mt-4">
@@ -746,6 +759,19 @@ function summarizePassport(passport: ApiPassport) {
   const details = events.length ? events.join(", ") : "no attended events yet";
   const description = passport.description?.trim();
   return `${description ? `${description}. ` : ""}${details}`;
+}
+
+function buildGroupPulse(profile: Profile | null, description?: string) {
+  const pulse = [
+    "📍 Boston this weekend",
+    `🚶 ${profile?.mobility ?? "mixed"} pace`,
+    `💸 ${profile?.budget ?? "medium"} budget`,
+    profile?.startingLocation ? `🧭 ${profile.startingLocation}` : null,
+    profile?.interests?.[0] ? `✨ ${profile.interests.slice(0, 2).join(" + ")}` : null,
+    description ? `🪪 ${description.slice(0, 32)}` : null,
+  ].filter(Boolean) as string[];
+
+  return pulse.slice(0, 5);
 }
 
 function StatusChip({

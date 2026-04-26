@@ -4,6 +4,7 @@ import {
   ArrowRightLeft,
   CreditCard,
   Loader2,
+  MapPin,
   PiggyBank,
   Plus,
   QrCode,
@@ -43,7 +44,7 @@ export default function SharedWallets() {
   const [spendOpen, setSpendOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [walletName, setWalletName] = useState("Barcelona Trip Wallet");
+  const [walletName, setWalletName] = useState("Weekend crew wallet");
   const [walletLimit, setWalletLimit] = useState("600");
   const [walletThreshold, setWalletThreshold] = useState("20");
   const [joinCode, setJoinCode] = useState("");
@@ -91,6 +92,12 @@ export default function SharedWallets() {
 
   const selectedWallet =
     wallets.find((wallet) => wallet.id === selectedWalletId) ?? wallets[0] ?? null;
+  const walletPulse = [
+    "📍 Boston weekend",
+    "✨ Perks + bookings",
+    "🍽️ Dinner-ready float",
+    `${selectedWallet?.members.length ?? 0} travelers`,
+  ];
 
   useEffect(() => {
     if (!selectedWallet) return;
@@ -254,6 +261,13 @@ export default function SharedWallets() {
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">
               Keep trip money pooled, visible, and easy to manage once the detours are picked.
             </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {walletPulse.map((item) => (
+                <span key={item} className="chip">
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -334,6 +348,37 @@ export default function SharedWallets() {
                 <MetricCard label="Alert" value={`${selectedWallet.alert_threshold_percent}%`} />
               </div>
             </div>
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+            <article className="rounded-[2rem] border border-line bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-stamp" />
+                <h2 className="font-serif text-2xl text-ink">Wallet role in the trip</h2>
+              </div>
+              <p className="mt-3 max-w-[50ch] text-sm leading-relaxed text-ink-soft">
+                Use the shared wallet for the elegant parts of the day: tickets, table holds,
+                quick group payments, and perk redemptions without awkward cleanup later.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="chip">🎟️ Tickets</span>
+                <span className="chip">🥂 Dinner holds</span>
+                <span className="chip">☕️ Cafe resets</span>
+                <span className="chip">🎁 Perks</span>
+              </div>
+            </article>
+
+            <article className="rounded-[2rem] border border-line bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-2">
+                <ReceiptText className="h-5 w-5 text-ocean-deep" />
+                <h2 className="font-serif text-2xl text-ink">At a glance</h2>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <MetricCard label="Members" value={String(selectedWallet.members.length)} />
+                <MetricCard label="Transactions" value={String(selectedWallet.transactions.length)} />
+                <MetricCard label="Join code" value={selectedWallet.join_code} />
+              </div>
+            </article>
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -480,7 +525,8 @@ export default function SharedWallets() {
         <section className="rounded-[2rem] border border-line bg-card p-8 shadow-sm">
           <h1 className="font-serif text-3xl text-ink">Shared wallet budgeting</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            This page is set up for fast group spending: preload funds, choose who joins, and keep every payment visible without bouncing between personal balances.
+            This page is set up for fast group spending: preload funds, choose who joins, and keep
+            every payment visible without bouncing between personal balances.
           </p>
         </section>
       )}
