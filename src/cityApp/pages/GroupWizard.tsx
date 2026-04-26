@@ -224,13 +224,6 @@ export default function GroupWizard() {
   }
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
-  const stopCount = plan?.detour.events.length ?? 0;
-  const projectedSpend = plan?.detour.events
-    ? plan.detour.events.reduce((sum, { order }) => {
-        const amount = getDetourMeta(order).costLabel.match(/\$([0-9]+)/)?.[1];
-        return sum + Number(amount ?? 0);
-      }, 0)
-    : 0;
   const tripPulse = [
     ...DEMO_PULSE,
     `${selectedUsers.length + 1} travelers`,
@@ -522,26 +515,16 @@ export default function GroupWizard() {
                   )}
                 </div>
 
-                <div className="grid gap-3 md:grid-cols-[1.05fr_0.95fr]">
-                  <div className="paper-card p-4">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-ink-soft">
-                      City pulse
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {tripPulse.map((item) => (
-                        <span key={item} className="chip">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <DetourMetric label="Stops" value={String(stopCount)} />
-                    <DetourMetric label="Window" value={`${Math.max(stopCount, 1) * 45} min`} />
-                    <DetourMetric
-                      label="Spend"
-                      value={projectedSpend > 0 ? `$${projectedSpend}` : `$${Number(budget || 0).toFixed(0)}`}
-                    />
+                <div className="paper-card p-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-ink-soft">
+                    City pulse
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {tripPulse.map((item) => (
+                      <span key={item} className="chip">
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </div>
 
@@ -841,15 +824,6 @@ export default function GroupWizard() {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-function DetourMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="paper-card flex min-h-[92px] flex-col justify-between p-4">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-ink-soft">{label}</p>
-      <p className="font-serif text-[28px] leading-none text-ink">{value}</p>
     </div>
   );
 }
