@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { DollarSign, Heart, Loader2, UserPlus, Users } from "lucide-react";
+import { DollarSign, Heart, Loader2, Sparkles, UserPlus, Users } from "lucide-react";
 
 import { useApp } from "@/cityApp/CityShell";
 import { api } from "@/cityApp/lib/apiAdapter";

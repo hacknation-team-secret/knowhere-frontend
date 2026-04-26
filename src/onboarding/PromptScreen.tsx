@@ -16,7 +16,9 @@ export function PromptScreen({ onNext }: Props) {
       await navigator.clipboard.writeText(PASSPORT_PROMPT);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch {
+      setCopied(false);
+    }
   };
 
   return (

@@ -62,7 +62,13 @@ High / Medium / Low, with one sentence explaining why.`;
 
 import type { ParsedProfile } from "./types";
 
-const sectionMap: Array<[keyof ParsedProfile, RegExp, "string" | "list"]> = [
+type ListProfileKey = "repeatedSignals" | "pulls" | "pushes" | "distinctive";
+type StringProfileKey = Exclude<keyof ParsedProfile, ListProfileKey | "raw">;
+type Section =
+  | [StringProfileKey, RegExp, "string"]
+  | [ListProfileKey, RegExp, "list"];
+
+const sectionMap: Section[] = [
   ["travelStyle", /TRAVEL STYLE:\s*([\s\S]*?)(?=\n[A-Z][A-Z +]+:|$)/i, "string"],
   ["repeatedSignals", /REPEATED SIGNALS:\s*([\s\S]*?)(?=\n[A-Z][A-Z +]+:|$)/i, "list"],
   ["pulls", /PULLS:\s*([\s\S]*?)(?=\n[A-Z][A-Z +]+:|$)/i, "list"],
@@ -81,9 +87,26 @@ const sectionMap: Array<[keyof ParsedProfile, RegExp, "string" | "list"]> = [
 function toList(s: string): string[] {
   return s
     .split(/\n+/)
-    .map((l) => l.replace(/^[\-\*•\d\.\)]+\s*/, "").trim())
+    .map((l) => l.replace(/^[-*•\d.)]+\s*/, "").trim())
     .filter(Boolean)
     .slice(0, 8);
+}
+
+function assignProfileField(
+  profile: ParsedProfile,
+  key: StringProfileKey | ListProfileKey,
+  value: string | string[],
+) {
+  switch (key) {
+    case "repeatedSignals":
+    case "pulls":
+    case "pushes":
+    case "distinctive":
+      profile[key] = Array.isArray(value) ? value : toList(value);
+      break;
+    default:
+      profile[key] = Array.isArray(value) ? value.join(" ") : value;
+  }
 }
 
 export function parseProfile(raw: string): ParsedProfile {
@@ -92,8 +115,11 @@ export function parseProfile(raw: string): ParsedProfile {
     const m = raw.match(re);
     if (m && m[1]) {
       const cleaned = m[1].trim();
-      if (kind === "list") (profile as any)[key] = toList(cleaned);
-      else (profile as any)[key] = cleaned.replace(/\s+/g, " ").trim();
+      assignProfileField(
+        profile,
+        key,
+        kind === "list" ? toList(cleaned) : cleaned.replace(/\s+/g, " ").trim(),
+      );
     }
   }
   return profile;
