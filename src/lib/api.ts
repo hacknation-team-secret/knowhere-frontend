@@ -160,6 +160,17 @@ export interface ApiGroupBudget {
   updated_at: string;
 }
 
+export interface ApiCityGuideStep {
+  phase: string;
+  title: string;
+  detail: string;
+}
+
+export interface ApiCityGuidePlanResponse {
+  steps: ApiCityGuideStep[];
+  detour: ApiDetour;
+}
+
 export interface ApiWalletMember {
   user: ApiPublicUser;
   role: string;
@@ -344,6 +355,11 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(budget),
       headers: { "Content-Type": "application/json" },
+    }),
+
+  createCityGuidePlan: (groupId: number) =>
+    request<ApiCityGuidePlanResponse>(`/groups/${groupId}/city-guide-plan`, {
+      method: "POST",
     }),
 
   listSharedWallets: () => request<ApiSharedWallet[]>("/wallets/shared"),

@@ -179,6 +179,10 @@ export const api = {
     return mainApi.upsertGroupBudget(groupId, budget);
   },
 
+  async createCityGuidePlan(groupId: number) {
+    return mainApi.createCityGuidePlan(groupId);
+  },
+
   async captureResearch(threadId: number, imageUrl?: string) {
     return mainApi.captureResearch(threadId, imageUrl);
   },
